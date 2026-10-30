@@ -8,4 +8,4 @@
 - postać jak ginie ma nieco trudniejsze bosy ale łatwiej jest jej troche zbierać żeby obok żeby się ex-pić
 -  desgin mobów i bosów (najpierw pomysłby dopasowałbym do biomów na mapie itd może też do fabuły)
 -  npc to z tą krótką fabułą bym zrobił ale tez duzo siedzenia i z 20 jak i nie wiecej genereowanych róznych npc chodzących musi być
--  
+-  NAJWAZNIEJSZE KAZDA RZECZ DESIGN MAP POSTACI WSZYSTKO NA RÓZNYCH BRANCHACH A POTEM TO W CAŁOŚĆ ŁĄCZYMY 
