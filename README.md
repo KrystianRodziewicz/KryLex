@@ -13,7 +13,7 @@
 
 **Klasy, Rozwój i Ekwipunek**
 
-* Gra zaoferuje 5-6 grywalnych klas postaci na start.
+* Gra zaoferuje 4 grywalnych klas postaci na start.
 * Broń i pancerze dedykowane konkretnym klasom będą poukrywane i rozrzucone po różnych rejonach mapy.
 * System "Ślubów": gracz zyskuje bardzo potężną zdolność, ale musi zaakceptować przypisane do niej poważne ograniczenie.
 * Złożone skalowanie matematyczne statystyk broni i zbroi, aby precyzyjnie balansować siłę postaci względem poziomu wrogów.
