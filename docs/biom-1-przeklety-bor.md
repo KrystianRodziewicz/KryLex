@@ -32,7 +32,7 @@ Dla level designu: jeśli nie wiesz, gdzie postawić wroga – postaw go tam, gd
 
 ### Struktura pionowa
 ```
-Osada (hub) ─── płot z czaszek ─── kapliczka 1
+Osada (hub) ─── kapliczka 1 ─── Guślarz ─── Słup Ślubów ─── płot z czaszek (brama)
    │
    ▼ Skraj          (2–3 pomieszczenia: nauka ruchu, pierwsze moby, pierwsze rozwidlenie)
    │
@@ -316,17 +316,17 @@ Szybszy, mniej cierpliwy. Zapowiedzi krótsze o ~30%. Te same ataki, nowe konsek
 
 ## 4. Layout Pomieszczeń
 
-11 pomieszczeń + arena. Oznaczenia: **S** = Skraj, **G** = Gęstwina, **K** = Korzenie. Szacowany czas przejścia bez śmierci: 25–35 min.
+Osada + 11 pomieszczeń + arena. Oznaczenia: **S** = Skraj, **G** = Gęstwina, **K** = Korzenie. Szacowany czas przejścia bez śmierci: 25–35 min.
 
 ### Schemat
 
 ```mermaid
 flowchart TD
-    OSADA["Osada (hub)"]
-    OSADA --> S1
+    OSADA["OSADA (hub) - Kapliczka 1, Guslarz, Slup Slubow"]
+    OSADA -- "brama na dwoch" --> S1
 
     subgraph SKRAJ["Skraj - nauka"]
-        S1["S1 Plot z czaszek - Kapliczka 1"]
+        S1["S1 Za plotem - samouczek ruchu"]
         S2["S2 Porzucony woz - wilk x1, dzwignia na dwoch"]
         S3["S3 Rozstaje - wilk x2, ognik x1"]
     end
@@ -378,15 +378,30 @@ Zasada: po każdym szczycie (G5, K2) **nie ma** odpoczynku – kapliczka 2 jest 
 
 ### Karty pomieszczeń
 
-#### S1 – Płot z czaszek
+#### OSADA – Hub
 | | |
 |---|---|
-| **Cel** | Nauka ruchu, skoku, zejścia w dół. Bezpieczne miejsce. |
+| **Cel** | Start gry, bezpieczeństwo, wybór Ślubów, powrót po śmierci obojga. Jedyne miejsce, gdzie nic nie grozi. |
+| **Rozmiar** | 1 ekran, płaski – bez platform. Gracz ma od razu zrozumieć, że to nie jest poziom. |
+| **Układ (od lewej)** | ⛩️ **Kapliczka 1** (punkt startu i respawnu) → **Guślarz** z księgą, tuż obok (`npc-guslarz.md`) → **Słup Ślubów** (rzeźbiony totem, interakcja = wybór Ślubu) → zamknięta chata Kupca *(placeholder, poza zakresem)* → **Płot z czaszek** z bramą na prawej krawędzi – wyjście do S1. |
+| **Nastrój** | Zmierzch, ostatnie ciepłe światło w grze. Dym z kominów, ale okiennice zamknięte – mieszkańców nie widać. Osada boi się Boru bardziej niż gracze. Jedyny ruch to płomień kapliczki. |
+| **Pierwsze 30 sekund** | Obaj gracze pojawiają się przy kapliczce (host pierwszy). Gdy oboje są obecni, Guślarz wypowiada kwestię pierwszej wizyty – bez interakcji, sam. Podpowiedź sterowania (ruch, ping) pojawia się dopiero po jego słowach. Droga jest jedna: w prawo. |
+| **Śluby** | Interakcja ze Słupem otwiera listę. Ślub osobisty wybiera każdy sam; Ślub wspólny wymaga potwierdzenia obojga (drugi gracz widzi propozycję i zatwierdza). Zmiana możliwa tu i przy kapliczce 2. |
+| **Klasy** | Wybierane w lobby przed wejściem do gry, nie w Osadzie. *(Prototyp – w pełnej wersji Słup mógłby obsługiwać też zmianę klasy.)* |
+| **Brama** | Otwiera się, gdy **oboje** gracze przy niej stoją. Pierwsza, najłagodniejsza lekcja „razem" – bez wrogów, bez kary, tylko czekanie na partnera. |
+| **Co-op** | Nic wymuszonego poza bramą. Osada ma być oddechem. |
+| **Wejścia / wyjścia** | Szybka podróż z kapliczki 2 (gracze pojawiają się przy kapliczce 1) → brama w prawo do S1. |
+| **Świat pamięta** | *Prototyp:* kwestie Guślarza. *Pełna wersja:* na płocie przybywa czaszek po każdej śmierci w Borze; po pokonaniu Włodarza otwiera się jedna okiennica. |
+| **Uwagi** | Osada nie ma tła z drzewami – las widać dopiero za bramą. Granica ma być ostra. 🔧 Scena startowa po lobby; punkt respawnu po śmierci obojga, gdy ostatnią odwiedzoną kapliczką była kapliczka 1. Brama korzysta z ogólnej zasady przejść (oboje przy wyjściu) – zero osobnego kodu. |
+
+#### S1 – Za płotem
+| | |
+|---|---|
+| **Cel** | Nauka ruchu, skoku, zejścia w dół. Pierwszy ekran lasu – bez zagrożeń. |
 | **Wrogowie** | Brak. |
 | **Co-op** | Pierwszy ping: gra podpowiada „wskaż partnerowi przejście" przy zejściu. |
-| **Wejścia / wyjścia** | Z Osady (lewo) → w dół do S2. |
-| **Świat pamięta** | ⛩️ Kapliczka 1. Płot z czaszek – jeśli gracze zginęli w Borze > 3 razy, na płocie wiszą ich kurhanowe znaki (pełna wersja). |
-| **Uwagi** | Jeden ekran. Oczy przy krawędzi migają raz, bez wroga – zapowiedź motywu. |
+| **Wejścia / wyjścia** | Z Osady przez bramę (lewo) → w dół do S2. |
+| **Uwagi** | Jeden ekran. Oczy przy krawędzi migają raz, bez wroga – zapowiedź motywu. Tu zaczyna się jesień i mgła – granica z Osadą ma być widoczna w jednej klatce. |
 
 #### S2 – Porzucony wóz
 | | |
@@ -483,6 +498,6 @@ Patrz sekcja 3. Wejście z góry, wyjście w dół po zwycięstwie.
 5. Kapliczka 2 jest *przed* elitą i bossem – gracze idą na egzamin bez pełnej flaszki, jeśli byli nieostrożni.
 
 ### Zakres w prototypie
-- Wszystkie 11 pomieszczeń + arena. G2 (sekret) jako pierwszy do wycięcia, jeśli brakuje czasu.
+- Osada + wszystkie 11 pomieszczeń + arena. G2 (sekret) jako pierwszy do wycięcia, jeśli brakuje czasu.
 - Greybox (prostokąty i platformy bez grafiki) wystarczy do testów M1.
 - 🔧 Każde pomieszczenie to osobna scena Godota; przejścia między nimi synchronizuje host (obaj gracze ładują nową scenę, gdy *oboje* dotkną wyjścia – albo gdy jeden skoczy do Matecznika).
