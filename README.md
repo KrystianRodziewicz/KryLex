@@ -33,7 +33,7 @@ Każda nowa mechanika musi wspierać przynajmniej jeden filar. Jeśli nie wspier
 - **Status projektu:** Prototyp testowy. Celem jest sprawdzenie, czy kluczowe mechaniki (co-op online, wspólna flaszka, świat sterowany bazą) są wykonalne i dają frajdę. Decyzja o pełnej kampanii zapada dopiero po ukończeniu prototypu.
 - **Czas gry prototypu:** ok. 20–40 minut, jeden zamknięty obszar.
 - **Stylistyka:** Pixel art, mroczny, słowiański klimat (w prototypie: grafika zastępcza).
-  
+
 ### 🛠️ Decyzje Techniczne
 | Obszar | Decyzja | Uzasadnienie |
 |---|---|---|
@@ -87,6 +87,11 @@ Dwoje graczy może przejść obszar od początku do pokonania bossa w sesji onli
 - *Tablica zadań (Trello/Jira):* `[DO UZUPEŁNIENIA]`
 - *Dysk z grafikami:* `[DO UZUPEŁNIENIA]`
 - *Repozytorium:* `[DO UZUPEŁNIENIA]`
+
+### 📁 Dokumenty Wykonawcze
+Ten plik to wizja. Szczegóły implementacyjne żyją w `docs/`:
+- [`docs/biom-1-przeklety-bor.md`](docs/biom-1-przeklety-bor.md) – klimat, karty wrogów, boss i layout bioma prototypu.
+- `docs/M0-netcode-spec.md` – specyfikacja prototypu sieci *(do napisania)*.
 
 ---
 
