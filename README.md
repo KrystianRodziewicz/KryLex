@@ -38,23 +38,19 @@ Każda nowa mechanika musi wspierać przynajmniej jeden filar. Jeśli nie wspier
 ### 🛠️ Decyzje Techniczne
 | Obszar | Decyzja | Uzasadnienie |
 |---|---|---|
-| Silnik | **Godot 4** | Darmowy, silne 2D, wbudowany high-level multiplayer (ENet / RPC). |
+| Silnik | **Godot 4.7.2-stable**, build standardowy, ta sama wersja u obojga | Darmowy, silne 2D, wbudowany high-level multiplayer (ENet / RPC). |
 | Model sieci | **Host-authoritative P2P** | Jeden gracz hostuje i jest źródłem prawdy, drugi jest klientem. Brak kosztów serwera. |
 | Baza danych | **SQLite przy hoście** | Stan świata żyje w sesji hosta i jest replikowany do klienta. Baza jest *per sesja*, nie globalna. |
-| Język | `[DO UZUPEŁNIENIA – GDScript / C#]` | |
+| Język | **GDScript z typami** | Jeden język u obojga, bez .NET SDK. Typy wszędzie, a ostrzeżenia o ich braku ustawione na błąd. |
 | Kontrola wersji | Git + **GitHub** ([KrystianRodziewicz/KryLex](https://github.com/KrystianRodziewicz/KryLex)) | Git LFS dla grafik i dźwięków. |
 
 > **Konsekwencja modelu sieci:** wszystko, co wpływa na stan gry (AI, fizyka otoczenia, drop, baza SQL), liczy się wyłącznie na hoście. Klient wysyła tylko input i otrzymuje stan. Mechaniki wymagające precyzyjnego timingu po stronie klienta (parowanie, uniki, Atak Zgrany) muszą uwzględniać kompensację opóźnień.
 
-> **Propozycja:** dwie opcje do wiersza „Język”.
-> 1. **GDScript z typami.** Typy wszędzie, a ostrzeżenia `UNTYPED_DECLARATION` i `UNSAFE_*` ustawione na `Error` (`Project Settings > Debug > GDScript`, po włączeniu Advanced Settings; domyślnie są wyłączone). Kod z typami działa też szybciej.
-> 2. **C# od pierwszego dnia albo wcale.** Pierwszy plik `.cs` oznacza edytor w wersji .NET i .NET SDK u obojga. Projekty C# w 4.7 nie eksportują się na web, godot-sqlite nie ma typowanego API dla C#, wsparcie C# w netfox jest eksperymentalne, a bety 4.8 wymagają .NET 10. Dołożenie C# później to przepisywanie kodu sieci i stanu świata, którego dotyka cała gra.
+> **Ustalone: GDScript z typami.** Typy wszędzie, a ostrzeżenia `UNTYPED_DECLARATION` i `UNSAFE_*` ustawione na `Error` (`Project Settings > Debug > GDScript`, po włączeniu Advanced Settings; domyślnie są wyłączone). Kod z typami działa też szybciej. C# odpada: pierwszy plik `.cs` oznaczałby edytor w wersji .NET i .NET SDK u obojga, projekty C# w 4.7 nie eksportują się na web, a godot-sqlite nie ma typowanego API dla C#. Nie dokładamy go później, bo to przepisywanie kodu sieci i stanu świata.
 >
-> Przy C# potrzebne jest zewnętrzne IDE. JetBrains Rider jest darmowy do użytku niekomercyjnego i obsługuje GDScript oraz C#.
+> **Ustalone: Godot 4.7.2-stable, build standardowy, u obojga ta sama wersja.** Gdy jedno z nas otworzy projekt w nowszym edytorze, zmieniają się zapisane pliki i wpis wersji w `project.godot`. Aktualizacja tylko razem i tylko między kamieniami milowymi, w jednym osobnym PR (`Upgrade Project Files` z menu Project plus nowe wersje addonów, np. godot-sqlite). Bety pomijamy, 4.8 też, póki nie wyjdzie stabilna. Pobrany zip warto zachować, a Godot ze Steama nie powinien aktualizować się sam.
 >
-> **Propozycja:** w wierszu „Silnik” warto wpisać dokładną wersję, tę samą u obojga. Dziś to Godot 4.7.2-stable, build standardowy (albo .NET przy opcji 2), a 4.8 jest w becie. Gdy jedno z nas otworzy projekt w nowszym edytorze, zmieniają się zapisane pliki i wpis wersji w `project.godot`. Aktualizacja tylko razem i tylko między kamieniami milowymi, w jednym osobnym PR (`Upgrade Project Files` z menu Project plus nowe wersje addonów, np. godot-sqlite). Bety pomijamy. Pobrany zip warto zachować, a Godot ze Steama nie powinien aktualizować się sam.
->
-> **Do ustalenia:** który komputer rozstrzyga trafienia, parowania i uniki. Opcja A, jak w notatce wyżej: host liczy wszystko, a klient wysyła tylko input. Opcja C: każdy komputer rozstrzyga za swoją postać, a host za wrogów i wspólne liczniki. Opcja B (jak A, ale na netfox) i pełne pytanie są w sekcji 6.
+> **Ustalone: o trafieniach, parowaniach i unikach rozstrzyga host, czyli prowadzący gracz.** Klient wysyła tylko input, tak jak w notatce wyżej (opcja A w sekcji 6). Opcje B (netfox) i C (każdy o swojej postaci) zostają spisane w sekcji 6 jako plan B, gdyby w testach przez internet parowanie gościa okazało się za bardzo opóźnione.
 
 ### 👥 Zespół i Role
 - **Krystian – Backend / Netcode:** architektura sieciowa, synchronizacja stanu, SQLite, system zapisu, narzędzia deweloperskie.
@@ -84,9 +80,11 @@ Dwoje graczy może przejść obszar od początku do pokonania bossa w sesji onli
 ### 🗓️ Kamienie Milowe
 | Etap | Cel | Termin |
 |---|---|---|
-| M0 – Prototyp sieci | Dwie postacie biegają po jednej planszy online, wspólna flaszka działa, zapis do SQLite. | `[DO UZUPEŁNIENIA]` |
-| M1 – Prototyp grywalny | Pełny zakres opisany wyżej, od startu do bossa. | `[DO UZUPEŁNIENIA]` |
+| M0 – Prototyp sieci | Dwie postacie biegają po jednej planszy online, wspólna flaszka działa, zapis do SQLite. | bez terminu |
+| M1 – Prototyp grywalny | Pełny zakres opisany wyżej, od startu do bossa. | bez terminu |
 | Decyzja | Czy robimy pełną grę? Jeśli tak – nowy plan i aktualizacja tego dokumentu. | po M1 |
+
+> **Ustalone:** terminów nie wyznaczamy. Robimy to po godzinach i bez pośpiechu, a etap jest gotowy, gdy spełnia swój cel z tabeli, nie gdy mija data. Kolejność etapów zostaje.
 
 > **Propozycja:** kolejność prac w M0.
 > 1. Dwie postacie w jednym procesie, bez sieci: jedna na klawiaturze, druga na padzie. Tak sprawdzamy sterowanie obu postaci, zanim dojdzie sieć.
@@ -98,7 +96,7 @@ Dwoje graczy może przejść obszar od początku do pokonania bossa w sesji onli
 1. **Branch `main`** – zawsze stabilna, działająca gra. Nie pracujemy na nim bezpośrednio.
 2. Każda nowa rzecz ma **własny branch** z prefiksem: `feature/`, `fix/`, `art/` (np. `feature/nemesis-system`, `fix/flask-desync`).
 3. Merge do `main` dopiero po przetestowaniu **w co-opie online**, nie tylko lokalnie.
-4. Commity opisujemy po polsku lub angielsku – ale konsekwentnie `[DO UZUPEŁNIENIA – wybór]`.
+4. Commity opisujemy po angielsku, konsekwentnie (np. `Add shared flask sync`, `Fix parry window on client`).
 
 ### 🧰 Git w projekcie Godota (propozycja)
 - Projekt zakładamy w Project Managerze z włączonymi metadanymi Git. Godot sam zapisze `.gitignore` i `.gitattributes`, który wymusza końce linii LF.
@@ -450,7 +448,7 @@ Dwa rodzaje – różnią się tym, czego wymagają od graczy:
 >
 > **Do ustalenia:** jak liczymy to okno. Opcje 1 i 2 zostają przy znacznikach czasu z uwagi wyżej, opcja 3 z nich rezygnuje.
 > 1. Sami szacujemy przesunięcie zegarów pingiem RPC ze znacznikami czasu, a statystyka `PEER_ROUND_TRIP_TIME` z `ENetPacketPeer` służy do kontroli.
-> 2. Bierzemy gotową synchronizację czasu z addonu netfox (MIT). To dodatkowa zależność, a przy C# wsparcie netfox jest na razie eksperymentalne.
+> 2. Bierzemy gotową synchronizację czasu z addonu netfox (MIT). To dodatkowa zależność.
 > 3. Host mierzy okno w chwili odbioru wciśnięć i dodaje tolerancję ok. jednego RTT (między domami zwykle kilkadziesiąt ms, na Wi-Fi bywa ponad 100 ms). Najmniej kodu, a okno po prostu trochę rośnie.
 
 **2. Reakcje Łączone** – sekwencje akcji dwóch klas w krótkim odstępie.
@@ -525,15 +523,15 @@ Zasada: **wszystko, o czym gracze chcą powiedzieć, można pokazać.** Zero zal
 
 ## 6. Technika: Sieć, Baza Danych i Testy
 
-To obszar Krystiana z sekcji 1, spisany jako propozycje i pytania do wspólnego ustalenia, nie jako decyzje.
+To obszar Krystiana z sekcji 1, spisany jako propozycje i pytania do wspólnego ustalenia. Punkty już ustalone są tak oznaczone.
 
-### 🌐 Model Sieci (do ustalenia przed kodem walki)
+### 🌐 Model Sieci (ustalone: opcja A)
 
-Sekcja 1 zapisuje: host decyduje o wszystkim, klient wysyła tylko input. Zanim powstanie kod walki, warto porównać to z dwiema innymi drogami.
+**Ustalone:** host, czyli prowadzący gracz, decyduje o wszystkim, a klient wysyła tylko input. Opcje B i C zostają w tabeli jako plan B, gdyby w testach przez internet parowanie gościa okazało się za bardzo opóźnione.
 
 | Opcja | Kto o czym decyduje | Co zyskujemy | Co tracimy |
 |---|---|---|---|
-| **A. Host decyduje o wszystkim** (zapis z sekcji 1) | Klient wysyła input, host liczy walkę i odsyła stan. | Jeden sędzia, prościej szukać błędów. | Parowanie i unik gościa host ocenia na starych danych. Przy RTT 40 ms i buforze interpolacji 70 do 100 ms to ok. 110 do 140 ms, czyli 7 do 8 klatek przy 60 fps. Bez predykcji unik gościa rusza dopiero po pełnym round tripie. |
+| **A. Host decyduje o wszystkim** (ustalone) | Klient wysyła input, host liczy walkę i odsyła stan. | Jeden sędzia, prościej szukać błędów. | Parowanie i unik gościa host ocenia na starych danych. Przy RTT 40 ms i buforze interpolacji 70 do 100 ms to ok. 110 do 140 ms, czyli 7 do 8 klatek przy 60 fps. Bez predykcji unik gościa rusza dopiero po pełnym round tripie. |
 | **B. Jak A, ale na netfox** | Pełny host authority na dodatku netfox (licencja MIT): synchronizacja czasu, predykcja, rollback. | Jeden sędzia, a gość ma predykcję i wspólny zegar. | Dużo nauki, pewnie zajmie nam pierwsze miesiące. |
 | **C. Każdy decyduje o swojej postaci** | Maszyna gracza: ruch, unik, parowanie, otrzymane obrażenia. Host: wrogowie, flaszka, log i świat, do tego rozstrzyga spory. | Parowanie działa od razu u obu graczy. | Brak ochrony przed oszukiwaniem (między nami bez znaczenia). Ruch wroga, który zależy od trafienia gościa, dostaje odpowiedź z opóźnieniem. |
 
@@ -545,21 +543,21 @@ Sekcja 1 zapisuje: host decyduje o wszystkim, klient wysyła tylko input. Zanim 
 >
 > **Propozycja:** pozycja, prędkość i kierunek idą przez synchronizer ze stałym `replication_interval` (np. 1/30 s) i małym własnym buforem, który rysuje zdalne postacie parę interwałów w przeszłości. Fakty (atak zaczęty, trafienie, parowanie, użycie flaszki, śmierć) idą jako zdarzenia RPC w trybie reliable, każde z id. Każdy atak wroga też ma id, żeby zgłoszenie mogło go wskazać, a spóźnione dało się odrzucić.
 >
-> **Do ustalenia (z kartami Alexa):** szarża wilkołaka (trafił albo chybił) i *Uchwyt* Niedźwiedzia zależą od trafienia gościa. W opcji C ta odpowiedź dociera do hosta z opóźnieniem, więc taki ruch potrzebuje krótkiej pauzy przed rozgałęzieniem, a przypięcie do łapy robi sama maszyna gościa po zdarzeniu od hosta. W opcji A host wie od razu, ale unik gościa ocenia późno.
+> **Do sprawdzenia w testach (z kartami Alexa):** szarża wilkołaka (trafił albo chybił) i *Uchwyt* Niedźwiedzia zależą od trafienia gościa. W opcji A host wie od razu, ale unik gościa ocenia na starych danych, więc okno uniku u gościa może wymagać tolerancji o jeden RTT. Gdybyśmy przeszli na opcję C, odpowiedź gościa dociera do hosta z opóźnieniem, więc taki ruch potrzebuje krótkiej pauzy przed rozgałęzieniem.
 
 ### 🧭 Kto Czym Zarządza
 
-Propozycja tabeli dla mechanik z sekcji 3 do 5. Wiersze „do ustalenia” zależą od opcji wybranej wyżej.
+Propozycja tabeli dla mechanik z sekcji 3 do 5, uzupełniona pod opcję A (host decyduje o wszystkim).
 
 | Stan | Właściciel | Jak idzie przez sieć | Zapis |
 |---|---|---|---|
-| Trafienie we wroga | Do ustalenia: host albo maszyna atakującego, a host tylko nakłada obrażenia (w opcjach A i B zawsze host) | Zdarzenie: kto, który wróg (ścieżka node'a), który cios, obrażenia. Przy hoście: atak jako zdarzenie, potwierdzenie wraca do obu | Nie |
+| Trafienie we wroga | Host (opcja A) | Zdarzenie: kto, który wróg (ścieżka node'a), który cios, obrażenia. Przy hoście: atak jako zdarzenie, potwierdzenie wraca do obu | Nie |
 | HP i pasek postawy wroga | Host | Właściwości `ON_CHANGE` (reliable, tylko przy zmianie). Złamanie postawy jako zdarzenie, śmierć jako despawn przez `MultiplayerSpawner` hosta | Nie, poza listą pokonanych bossów i Nemesis |
 | Ładunki flaszki | Host zatwierdza (sekcja 5) | Prośba, zgoda i odmowa jako zdarzenia, licznik jako `ON_CHANGE`. Animacja picia rusza od razu i cofa się po odmowie | Przy kapliczce i tak się odnawia. Bieżącą liczbę tylko wtedy, gdy da się wyjść z gry poza kapliczką |
-| Zasób współpracy Maga | Do ustalenia: host (jeden licznik dla dwóch osób, jak flaszka) albo maszyna Maga (zaklęcie bez czekania) | +1 z każdego zdarzenia trafienia Wojownika. Wydanie jako prośba do hosta albo zdarzenie od Maga | Nie |
+| Zasób współpracy Maga | Host (jeden licznik dla dwóch osób, jak flaszka) | +1 z każdego zdarzenia trafienia Wojownika. Wydanie jako prośba do hosta, animacja zaklęcia rusza od razu i cofa się po odmowie | Nie |
 | Pasek Ataku Zgranego | Host | Pasek jako `ON_CHANGE`. Wciśnięcia jako zdarzenia ze znacznikiem czasu, wynik jako zdarzenie od hosta | Nie |
-| Statusy żywiołowe | Do ustalenia: właściciel celu (host dla wrogów, gracz dla swojej postaci) albo host dla wszystkiego | Nałożenie jako zdarzenie z czasem trwania, każda maszyna sama odlicza. Reakcję rozstrzyga tylko właściciel, więc roztrzaskanie odpala się raz | Nie |
-| Duch i wskrzeszenie | Swoją śmierć ogłasza maszyna gracza (opcja C) albo host. Śmierć obojga zawsze host, bo widzi oboje | Śmierć i wskrzeszenie jako zdarzenia, postęp wskrzeszania jako `ON_CHANGE` | Wiersz `player_death` w `events` |
+| Statusy żywiołowe | Host | Nałożenie jako zdarzenie z czasem trwania, każda maszyna sama odlicza. Reakcję rozstrzyga tylko host, więc roztrzaskanie odpala się raz | Nie |
+| Duch i wskrzeszenie | Host ogłasza każdą śmierć, także śmierć obojga, bo widzi oboje | Śmierć i wskrzeszenie jako zdarzenia, postęp wskrzeszania jako `ON_CHANGE` | Wiersz `player_death` w `events` |
 | Kurhany | Host | Nowy kurhan jako zdarzenie. Pełna lista jednym RPC, gdy gość dołącza (słownik przejdzie jako argument, obiekty nie) | Wyliczane z wierszy `player_death` |
 | Rekord Nemesis (elita z sekcji 4 albo, do ustalenia, każdy mob jak w pierwszym pomyśle Krystiana) | Host | Awansowany wróg spawnuje się jak każdy inny, a imię, ranga i wygląd idą jako właściwości przy spawnie | W SQLite, jeśli sesja to całe przejście. Tylko w pamięci, jeśli jeden wieczór |
 | Nauczone ruchy bossa | Host | Nic nowego: nauczony atak to zwykły stan animacji bossa | Do ustalenia: trwałe albo reset po wyjściu z gry |
@@ -628,13 +626,13 @@ Propozycja zestawu, żeby jedna osoba mogła testować co-op bez partnera:
 
 ### 🧰 Język i Narzędzia (propozycja)
 
-Do pytania o język z sekcji 1. Do przegadania, nic tu nie jest jeszcze wybrane:
+Język i wersja silnika są ustalone w sekcji 1, reszta do przegadania:
 
-- **Wersja silnika i język:** opcje są opisane przy tabeli decyzji technicznych w sekcji 1 (dokładna wersja `4.7.2-stable` z 18 sierpnia 2026, GDScript z typami albo C# od pierwszego dnia). 4.8 jest w becie (beta2 z 29 października 2026). W README wpisujemy też wersję godot-sqlite.
+- **Wersja silnika i język (ustalone):** Godot `4.7.2-stable` z 18 sierpnia 2026, build standardowy, GDScript z typami. 4.8 jest w becie (beta2 z 29 października 2026) i ją pomijamy. W README wpisujemy też wersję godot-sqlite.
 - **Sieć i baza:** high-level multiplayer na ENet, zdarzenia przez RPC, pozycje przez `MultiplayerSynchronizer`, SQLite przez godot-sqlite za jednym autoloadem. Tailscale albo ZeroTier do grania przez internet w trakcie prac, GodotSteam tylko przy ewentualnym wydaniu na Steam.
 - **Python obok gry, nie w niej:** pytest na tych samych plikach `.sql` (wbudowany moduł `sqlite3`), pandas albo DataGrip na logach z testów. Uwaga: SQLite w DataGrip i w Pythonie na Windowsie ma funkcje matematyczne, FTS5 i `R*Tree`, a gotowe binarki godot-sqlite nie mają żadnej z nich. Trzymamy się podstawowego SQL.
-- **Testy:** GUT (tylko GDScript, 9.7.1 dla 4.7.x) albo gdUnit4 (też C#, ma scene runner, który symuluje akcje wejścia).
-- **IDE:** JetBrains Rider jest darmowy do użytku niekomercyjnego i obsługuje GDScript oraz C#.
+- **Testy:** GUT (9.7.1 dla 4.7.x) albo gdUnit4 (ma scene runner, który symuluje akcje wejścia). Oba działają z GDScript.
+- **IDE:** na start wystarczy edytor wbudowany w Godota. JetBrains Rider jest darmowy do użytku niekomercyjnego i też obsługuje GDScript.
 
 ---
 
@@ -643,17 +641,17 @@ Do pytania o język z sekcji 1. Do przegadania, nic tu nie jest jeszcze wybrane:
 Wszystkie pozycje `[DO UZUPEŁNIENIA]` z dokumentu w jednym miejscu. Zaznaczaj wykonane.
 
 ### Przed startem prac (M0)
-- [ ] Język w Godot: GDScript czy C#?
+- [x] Język w Godot: GDScript czy C#? GDScript z typami.
 - [x] Hosting repozytorium: GitHub czy GitLab? GitHub, repo już działa.
-- [ ] Język commitów: polski czy angielski?
+- [x] Język commitów: polski czy angielski? Angielski.
 - [ ] Linki: tablica zadań, dysk z grafikami, repozytorium.
-- [ ] Terminy M0 i M1.
-- [ ] Wersja silnika dla obojga: Godot 4.7.2-stable, build standardowy czy .NET? Aktualizujemy tylko razem, między kamieniami milowymi i bez bet?
+- [x] Terminy M0 i M1. Bez terminów, robimy bez pośpiechu. Etap jest gotowy, gdy spełnia swój cel.
+- [x] Wersja silnika dla obojga: Godot 4.7.2-stable, build standardowy. Aktualizujemy tylko razem, między kamieniami milowymi i bez bet.
 - [ ] Git LFS: od pierwszego commitu assetów, jak w tabeli technicznej, czy na start bez LFS?
 - [ ] Zasady PR do `main`: kto sprawdza i w jakim czasie (np. 48 h) i czy włączamy ochronę gałęzi `main` (przy publicznym repo działa na darmowym planie GitHuba)?
 - [ ] Kto jest właścicielem repo i gry (konto osobiste czy wspólna organizacja, repo prywatne czy publiczne z licencją) i co dalej, jeśli jedno z nas przestanie?
 - [ ] Kto ma ostatnie słowo, gdy się nie zgadzamy (np. osoba, która to buduje, po wysłuchaniu drugiej, albo tani test obu wersji), i gdzie zapisujemy decyzje (np. `docs/decisions/`)?
-- [ ] Kto rozstrzyga trafienia, parowania i uniki gościa: host o wszystkim, każdy o swojej postaci czy netfox?
+- [x] Kto rozstrzyga trafienia, parowania i uniki gościa: host, czyli prowadzący gracz (opcja A). Opcje B i C zostają jako plan B po testach przez internet.
 - [ ] Gra przez internet na czas prac: Tailscale, ZeroTier czy przekierowany port UDP?
 - [ ] Jak daleko gracze mogą się rozejść: tylko wspólne pomieszczenie, smycz o jedno pomieszczenie czy swobodnie?
 - [ ] Widok z boku: czy postacie i wrogowie się blokują, czy przenikają, i co robi wróg bity w plecy?
@@ -666,7 +664,7 @@ Wszystkie pozycje `[DO UZUPEŁNIENIA]` z dokumentu w jednym miejscu. Zaznaczaj w
 - [ ] 5 kwestii warunkowych Guślarza.
 - [ ] 3–4 moby prototypu, 1 elita, 1 boss – projekty z zapisanymi czasownikami.
 - [ ] Wartości balansu: okno Ataku Zgranego, okno Reakcji Łączonych, cooldowny wersji słabych.
-- [ ] Framework testów: GUT (tylko GDScript) czy gdUnit4 (też C#)? Zależy od decyzji o języku.
+- [ ] Framework testów: GUT czy gdUnit4? Oba działają z GDScript.
 - [ ] Co znaczy „sesja” dla zapisu świata: jeden wieczór czy całe przejście?
 - [ ] Stały host czy zapis wędruje z hostem, i gdzie żyje postać gościa?
 - [ ] Czy robimy tabelę reguł świata? Jeśli tak: od jakich wierszy zaczynamy (Guślarz, kurhany) i gdzie ją trzymamy (SQLite, `.csv` czy `Resource`)?
@@ -699,7 +697,7 @@ Wszystkie pozycje `[DO UZUPEŁNIENIA]` z dokumentu w jednym miejscu. Zaznaczaj w
 
 ### Różnice między wersjami (do ustalenia razem)
 
-Pierwsza wersja to wcześniejsze README z gałęzi krystian-branch i notatki z pliku [`Krystian-README.md`](Krystian-README.md). Obecny opis to README z gałęzi alex-branch.
+Pierwsza wersja to wcześniejsze README i notatki z gałęzi krystian-branch (dziś już tylko w historii gita). Obecny opis to README z gałęzi alex-branch.
 
 | Temat | Pierwsza wersja | Obecny opis | Uwaga |
 |---|---|---|---|
