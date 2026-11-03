@@ -19,3 +19,5 @@ var burn_seconds: float = 0.0
 ## Wynik, wypełnia go cel: true, gdy trafienie zatrzymała tarcza.
 ## Źródło czyta to z sygnału [signal Hitbox.landed] (wilk odbija się od tarczy).
 var blocked: bool = false
+## Wynik: true, gdy trafienie wchłonęła bariera Maga (bez odbicia, bez ogłuszenia).
+var absorbed: bool = false

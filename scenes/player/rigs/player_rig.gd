@@ -24,6 +24,12 @@ func restart(anim: StringName, duration: float = -1.0) -> void:
 	play(anim, duration)
 
 
+## Pokazuje albo chowa barierę (tylko rig klasy, która ją ma).
+## [param absorbed] = bariera gaśnie, bo wchłonęła cios (inna animacja niż wygaśnięcie).
+func set_barrier(_active: bool, _absorbed: bool = false) -> void:
+	pass
+
+
 func flash(color: Color) -> void:
 	modulate = color
 	var tween: Tween = create_tween()

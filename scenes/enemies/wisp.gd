@@ -109,7 +109,7 @@ func _throw_spark(target: Player) -> void:
 	spark.position = position
 	get_parent().add_child(spark)
 	var direction: Vector2 = (target.global_position - global_position).normalized()
-	spark.launch(direction, _wstats.spark_speed, _wstats.spark_damage,
+	spark.throw(direction, _wstats.spark_speed, _wstats.spark_damage,
 		_wstats.spark_burn_seconds, _wstats.spark_lifetime, self)
 	print("[Ognik] iskra w P%d" % target.player_id)
 

@@ -23,6 +23,12 @@ func bind_player(player: Player) -> void:
 	player.health_changed.connect(refresh)
 	player.state_changed.connect(func(_new_state: Player.State) -> void:
 		refresh.call(player.hp, player.stats.max_hp))
+	# Odliczanie bariery zmienia się bez zmiany HP, więc etykieta odświeża się też co sekundę.
+	var ticker: Timer = Timer.new()
+	ticker.wait_time = 1.0
+	ticker.autostart = true
+	ticker.timeout.connect(func() -> void: refresh.call(player.hp, player.stats.max_hp))
+	label.add_child(ticker)
 	refresh.call(player.hp, player.stats.max_hp)
 
 

@@ -6,4 +6,4 @@ Grafika zastępcza, dźwięki i fonty. W prototypie tylko graybox i proste kszta
 
 Pliki przenosimy i zmieniamy im nazwy tylko w docku FileSystem w Godocie, inaczej psują się referencje.
 
-`sprites/warrior/` to części Wojownika do rigu "z części" (`scenes/player/rigs/`). Nie rysujemy ich ręcznie: generuje je `tools/art/make_warrior_parts.py` z map ASCII, więc źródłem prawdy jest skrypt, a PNG to wynik (po kilkaset bajtów każdy, więc na razie bez Git LFS). Pliki `.import` idą do repo razem z PNG.
+`sprites/warrior/` i `sprites/mage/` to części Wojownika i Maga do rigów "z części" (`scenes/player/rigs/`). Nie rysujemy ich ręcznie: generuje je `tools/art/make_parts.py` z map ASCII, więc źródłem prawdy jest skrypt, a PNG to wynik (po kilkaset bajtów każdy, więc na razie bez Git LFS). Pliki `.import` idą do repo razem z PNG.

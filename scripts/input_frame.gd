@@ -13,6 +13,7 @@ var jump_held: bool = false
 var attack_pressed: bool = false
 var dodge_pressed: bool = false
 var block_held: bool = false
+var block_pressed: bool = false
 var interact_pressed: bool = false
 var flask_pressed: bool = false
 var ping_pressed: bool = false
@@ -29,6 +30,7 @@ func to_packed() -> PackedFloat32Array:
 	bits |= 32 if interact_pressed else 0
 	bits |= 64 if flask_pressed else 0
 	bits |= 128 if ping_pressed else 0
+	bits |= 256 if block_pressed else 0
 	return PackedFloat32Array([move.x, move.y, float(bits)])
 
 
@@ -46,4 +48,5 @@ static func from_packed(data: PackedFloat32Array) -> InputFrame:
 	f.interact_pressed = (bits & 32) != 0
 	f.flask_pressed = (bits & 64) != 0
 	f.ping_pressed = (bits & 128) != 0
+	f.block_pressed = (bits & 256) != 0
 	return f

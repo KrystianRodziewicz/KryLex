@@ -1,11 +1,11 @@
-"""Generuje pikselowe części Wojownika do rigu "z części" (paper doll).
+"""Generuje pikselowe części postaci do rigów "z części" (paper doll).
 
 Uruchomienie (z katalogu projektu, bez zależności poza biblioteką standardową):
-    python tools/art/make_warrior_parts.py
+    python tools/art/make_parts.py
 
 Każda część to mapa ASCII: jeden znak = jeden piksel, litera = kolor z PALETTE,
 kropka = przezroczysty. Zmiana wyglądu to edycja mapy i ponowne uruchomienie.
-Wynik trafia do assets/sprites/warrior/*.png (po imporcie Godot dopisze .import).
+Wynik trafia do assets/sprites/<postać>/*.png (po imporcie Godot dopisze .import).
 """
 
 from __future__ import annotations
@@ -33,10 +33,19 @@ PALETTE: dict[str, tuple[int, int, int, int]] = {
     "g": (217, 164, 65, 255),    # okucie
     "e": (27, 21, 34, 255),      # oko
     "B": (232, 228, 216, 255),   # klinga, jaśniejsza od zbroi
+    "n": (60, 78, 146, 255),     # szata Maga
+    "N": (96, 122, 198, 255),    # szata, światło
+    "d": (40, 54, 104, 255),     # kaptur, cień szaty
+    "c": (127, 227, 255, 255),   # kryształ / fokus
+    "C": (214, 247, 255, 255),   # kryształ, blask
+    "k": (20, 22, 36, 255),      # mrok pod kapturem
+    "t": (140, 230, 255, 130),   # bariera, wnętrze
+    "T": (220, 250, 255, 235),   # bariera, obwódka
+    "Y": (240, 236, 224, 255),   # broda
 }
 
 # Każda część patrzy w prawo. Rig odwraca całość przez scale.x.
-PARTS: dict[str, str] = {
+WARRIOR: dict[str, str] = {
     # Hełm z wizurą: stal, ciemny pas wizury ze szczeliną na oko, podbródek.
     "head": """
 .ooooo.
@@ -113,6 +122,137 @@ omrrBrrmo
 """,
 }
 
+MAGE: dict[str, str] = {
+    # Spiczasty kapelusz ze złotą gwiazdą i szerokim rondem, twarz, siwa broda.
+    "head": """
+....o....
+...ogo...
+...ono...
+..onnno..
+..onnno..
+.onnnnno.
+ooooooooo
+.ossseso.
+.ossssso.
+.oYYYYYo.
+..oYYYo..
+...ooo...
+""",
+    # Szata z jaśniejszym przodem, złotą gwiazdą i sznurem w pasie; sięga poniżej bioder.
+    "torso": """
+.oooooo.
+odnNNndo
+odnNgndo
+odnNNndo
+odnnnndo
+olgggglo
+odnnnndo
+odnnnndo
+odnnnndo
+oddnnddo
+.oooooo.
+""",
+    # Szeroki rękaw i dłoń.
+    "arm": """
+.oo.
+odno
+odno
+onno
+onno
+osso
+.oo.
+""",
+    # Ciemne nogawki i but.
+    "leg": """
+.oo.
+oddo
+oddo
+oddo
+oddo
+oddo
+obbo
+.oo.
+""",
+    # Laska: drewno (2 px) z kryształem na szczycie.
+    "staff": """
+.oo.
+oCCo
+occo
+oCCo
+.oo.
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+oWwo
+.oo.
+""",
+    # Pięść zaciśnięta na lasce, rysowana nad nią.
+    "fist": """
+ooo
+oso
+ooo
+""",
+    # Fokus: świecąca kula.
+    "orb": """
+.ooo.
+ocCco
+oCCCo
+occco
+.ooo.
+""",
+    # Bariera: łuk ")" przed postacią, wyższy od niej, jasna krawędź zewnętrzna.
+    "barrier": """
+TT........
+tTT.......
+.tTT......
+..tTT.....
+...tTT....
+...tTTT...
+....tTT...
+....tTTT..
+.....tTT..
+.....tTTT.
+.....tTTT.
+......tTT.
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTTT
+......tTT.
+.....tTTT.
+.....tTTT.
+.....tTT..
+....tTTT..
+....tTT...
+...tTTT...
+...tTT....
+..tTT.....
+.tTT......
+tTT.......
+TT........
+""",
+}
+
+CHARACTERS: dict[str, dict[str, str]] = {"warrior": WARRIOR, "mage": MAGE}
+
 
 def parse(part: str) -> list[str]:
     rows = [line for line in part.strip("\n").splitlines() if line]
@@ -145,12 +285,13 @@ def write_png(path: Path, rows: list[str]) -> None:
 
 def main() -> int:
     root = Path(__file__).resolve().parents[2]
-    out_dir = root / "assets" / "sprites" / "warrior"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for name, art in PARTS.items():
-        rows = parse(art)
-        write_png(out_dir / f"{name}.png", rows)
-        print(f"{name}: {len(rows[0])}x{len(rows)} px")
+    for character, parts in CHARACTERS.items():
+        out_dir = root / "assets" / "sprites" / character
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for name, art in parts.items():
+            rows = parse(art)
+            write_png(out_dir / f"{name}.png", rows)
+            print(f"{character}/{name}: {len(rows[0])}x{len(rows)} px")
     return 0
 
 

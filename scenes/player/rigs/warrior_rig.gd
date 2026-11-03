@@ -1,38 +1,16 @@
 class_name WarriorRig
-extends PlayerRig
-## Wojownik z części: głowa, tułów, dwie ręce, dwie nogi, miecz i tarcza,
-## każda jako Sprite2D z assets/sprites/warrior. Animacje to klatki kluczowe
-## na obrotach i pozycjach przegubów, budowane tutaj w kodzie, więc poprawka
-## ruchu to zmiana jednej liczby.
+extends PartsRig
+## Wojownik z części: hełm, napierśnik, dwie ręce, dwie nogi, miecz
+## w przedniej dłoni i tarcza w tylnej (assets/sprites/warrior).
 ##
-## Hitboxy nie są kluczowane w animacji: o oknie ataku decyduje PlayerStats,
-## a [method play] dostaje czas trwania i dopasowuje do niego tempo.
-##
-## Dłonie mają własne obroty: miecz leży w dłoni klingą od barku (0 stopni =
-## klinga przedłuża rękę), a tarcza dostaje obrót przeciwny do ręki, więc
-## zawsze stoi w pionie, niezależnie od tego, co robi ramię.
+## Miecz leży w dłoni klingą od barku (0 stopni = klinga przedłuża rękę),
+## a tarcza dostaje obrót przeciwny do ręki, więc zawsze stoi w pionie.
 
-const BODY: String = "Body"
-const HEAD: String = "Body/Neck"
-const ARM_B: String = "Body/ShoulderBack"
-const ARM_F: String = "Body/ShoulderFront"
-const HAND_B: String = "Body/ShoulderBack/Hand"
-const HAND_F: String = "Body/ShoulderFront/Hand"
-const LEG_B: String = "LegBack"
-const LEG_F: String = "LegFront"
-
-## Spoczynkowy obrót dłoni z mieczem: klinga oparta o bark, nie w ziemi.
+## Spoczynkowy obrót dłoni z mieczem: klinga uniesiona przed sobą, nie w ziemi.
 const SWORD_REST: float = -150.0
 
-var _current: StringName = &""
-var _player: AnimationPlayer = null
 
-
-func _ready() -> void:
-	_player = AnimationPlayer.new()
-	_player.name = "AnimationPlayer"
-	add_child(_player)
-	var library: AnimationLibrary = AnimationLibrary.new()
+func _register_animations(library: AnimationLibrary) -> void:
 	library.add_animation(&"idle", _anim_idle())
 	library.add_animation(&"run", _anim_run())
 	library.add_animation(&"jump", _anim_jump())
@@ -44,110 +22,20 @@ func _ready() -> void:
 	library.add_animation(&"hurt", _anim_hurt())
 	library.add_animation(&"knockdown", _anim_knockdown())
 	library.add_animation(&"dead", _anim_dead())
-	_player.add_animation_library(&"", library)
-	play(&"idle")
 
 
-func setup(_stats: PlayerStats) -> void:
-	pass
-
-
-## Ta sama animacja nie startuje od nowa (skok trzyma ostatnią pozę, aż
-## gracz zacznie spadać). Nowa animacja przenika z poprzedniej przez krótki
-## blend, więc przejścia bieg → skok → lot nie szarpią.
-func play(anim: StringName, duration: float = -1.0) -> void:
-	if anim == _current:
-		return
-	restart(anim, duration)
-
-
-func restart(anim: StringName, duration: float = -1.0) -> void:
-	if not _player.has_animation(anim):
-		anim = &"idle"
-	var blend: float = 0.03 if anim in [&"attack", &"hurt", &"knockdown", &"dead"] else 0.08
-	# Po pełnym obrocie (fikołek) tułów stoi na 360 stopniach; blend cofałby go
-	# do zera przez ćwierć obrotu w drugą stronę, więc wtedy bez przenikania.
-	if _current == &"dodge":
-		blend = 0.0
-	_current = anim
-	var speed: float = 1.0
-	if duration > 0.0:
-		var length: float = _player.get_animation(anim).length
-		speed = length / duration
-	_player.play(anim, blend, speed)
-
-
-## Nazwa bieżącej animacji (do podglądu i testów).
-func current_animation() -> StringName:
-	return _current
-
-
-# --- Budowanie animacji -------------------------------------------------------------
-
-
-## Jeden tor: ścieżka właściwości i lista par (czas, wartość).
-class Track:
-	extends RefCounted
-	var path: NodePath
-	var times: PackedFloat32Array
-	var values: Array
-	var discrete: bool
-
-	func _init(p_path: NodePath, p_times: PackedFloat32Array, p_values: Array,
-			p_discrete: bool = false) -> void:
-		path = p_path
-		times = p_times
-		values = p_values
-		discrete = p_discrete
-
-
-func _build(length: float, loop: bool, tracks: Array[Track]) -> Animation:
-	var anim: Animation = Animation.new()
-	anim.length = length
-	anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
-	for track: Track in tracks:
-		var idx: int = anim.add_track(Animation.TYPE_VALUE)
-		anim.track_set_path(idx, track.path)
-		anim.track_set_interpolation_type(idx, Animation.INTERPOLATION_LINEAR)
-		anim.value_track_set_update_mode(idx,
-			Animation.UPDATE_DISCRETE if track.discrete else Animation.UPDATE_CONTINUOUS)
-		for i: int in track.times.size():
-			anim.track_insert_key(idx, track.times[i], track.values[i])
-	return anim
-
-
-func _rot(path: String, times: PackedFloat32Array, degrees: PackedFloat32Array) -> Track:
-	var values: Array = []
-	for d: float in degrees:
-		values.append(deg_to_rad(d))
-	return Track.new(NodePath(path + ":rotation"), times, values)
-
-
-func _pos(path: String, times: PackedFloat32Array, points: Array[Vector2], discrete: bool = true) -> Track:
-	var values: Array = []
-	for p: Vector2 in points:
-		values.append(p)
-	return Track.new(NodePath(path + ":position"), times, values, discrete)
-
-
-## Tylna ręka z tarczą: ramię obraca się, a dłoń dostaje obrót przeciwny
-## (plus [param tilt]), więc tarcza zostaje w pionie.
-func _shield_arm(times: PackedFloat32Array, arm_degrees: PackedFloat32Array, tilt: float = 0.0) -> Array[Track]:
-	var hand: PackedFloat32Array = PackedFloat32Array()
-	for d: float in arm_degrees:
-		hand.append(-d + tilt)
-	return [_rot(ARM_B, times, arm_degrees), _rot(HAND_B, times, hand)]
-
-
-## Przednia ręka z mieczem: ramię i osobny obrót dłoni (0 = klinga przedłuża rękę).
 func _sword_arm(times: PackedFloat32Array, arm_degrees: PackedFloat32Array,
 		hand_degrees: PackedFloat32Array) -> Array[Track]:
-	return [_rot(ARM_F, times, arm_degrees), _rot(HAND_F, times, hand_degrees)]
+	return _arm_with_hand(ARM_F, HAND_F, times, arm_degrees, hand_degrees)
+
+
+func _shield_arm(times: PackedFloat32Array, arm_degrees: PackedFloat32Array, tilt: float = 0.0) -> Array[Track]:
+	return _arm_level_hand(ARM_B, HAND_B, times, arm_degrees, tilt)
 
 
 func _anim_idle() -> Animation:
 	# Spokojny oddech: tułów opada o piksel raz na 1,6 s, ręce ledwo drgają.
-	# Miecz oparty o bark, tarcza wisi z przodu przy biodrze.
+	# Miecz uniesiony przed sobą, tarcza wisi z przodu przy biodrze.
 	var t: PackedFloat32Array = [0.0, 0.8, 1.6]
 	var tracks: Array[Track] = [
 		_pos(BODY, t, [Vector2(0, 0), Vector2(0, 1), Vector2(0, 0)]),
@@ -237,7 +125,7 @@ func _anim_dodge() -> Animation:
 		_rot(HEAD, t, [0.0, 20.0, 0.0]),
 	]
 	tracks.append_array(_sword_arm(t, [-20.0, -60.0, 22.0], [SWORD_REST, -100.0, SWORD_REST]))
-	# W fikołku tarcza przylega do ciała, więc obraca się razem z nim (tilt = obrót ręki).
+	# W fikołku tarcza przylega do ciała, więc obraca się razem z nim.
 	tracks.append_array([_rot(ARM_B, t, [-40.0, -90.0, -28.0]), _rot(HAND_B, t, [40.0, 90.0, 28.0])])
 	return _build(0.45, false, tracks)
 

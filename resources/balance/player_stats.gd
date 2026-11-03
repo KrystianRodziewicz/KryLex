@@ -48,10 +48,24 @@ extends Resource
 @export var attack_recovery: float = 0.2
 ## Odległość środka hitboxa od środka postaci.
 @export var attack_reach: float = 16.0
+## Pusty = atak w zwarciu hitboxem. Scena z [Projectile] = atak dystansowy:
+## pocisk startuje w aktywnej klatce ataku (Mag: pocisk ognia, czasownik Podpal).
+@export var projectile_scene: PackedScene
+@export var projectile_speed: float = 260.0
+@export var projectile_range: float = 220.0
+@export var projectile_burn_seconds: float = 2.0
+## Skąd wylatuje pocisk względem środka postaci (x mnożony przez kierunek).
+@export var projectile_origin: Vector2 = Vector2(14, -8)
 
 @export_group("Obrona")
 ## Ułamek obrażeń przechodzący przez blok (0 = pełny blok).
 @export_range(0.0, 1.0) var block_damage_multiplier: float = 0.0
+## Osłoń w wersji słabej (README, sekcja 3): magiczna bariera przed postacią
+## wchłania jeden atak z przodu, potem odnawia się ok. 20 s. Klasa z tarczą jej nie ma.
+@export var has_barrier: bool = false
+## Ile sekund bariera czeka na cios, zanim sama zgaśnie.
+@export var barrier_duration: float = 5.0
+@export var barrier_cooldown: float = 20.0
 @export var hurt_stun: float = 0.25
 ## Ogłuszenie po powaleniu (szarża wilkołaka).
 @export var knockdown_stun: float = 0.7

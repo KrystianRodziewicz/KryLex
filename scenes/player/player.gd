@@ -36,6 +36,10 @@ var last_hit_by: Node2D = null
 var bleed_left: float = 0.0
 ## Pozostały czas podpalenia w sekundach.
 var burn_left: float = 0.0
+## Bariera Maga: wchłania jeden atak (Osłoń w wersji słabej).
+var barrier_active: bool = false
+var barrier_left: float = 0.0
+var barrier_cooldown_left: float = 0.0
 
 var _state_time: float = 0.0
 var _hurt_stun: float = 0.0
@@ -107,6 +111,8 @@ func _tick_locomotion(delta: float) -> void:
 		_jump_buffer_left = stats.jump_buffer
 
 	blocking = frame.block_held and stats.can_block and on_floor
+	if frame.block_pressed and stats.has_barrier and barrier_cooldown_left <= 0.0 and not barrier_active:
+		_raise_barrier()
 	var control: float = 1.0 if on_floor else stats.air_control
 	var speed: float = stats.move_speed * (stats.block_move_multiplier if blocking else 1.0)
 	if is_zero_approx(frame.move.x):
@@ -179,12 +185,46 @@ func _tick_attack(delta: float) -> void:
 	var total: float = active_to + stats.attack_recovery
 	if not _attack_opened and _state_time >= active_from:
 		_attack_opened = true
-		hitbox.activate(stats.attack_damage, stats.attack_knockback, self)
+		if stats.projectile_scene != null:
+			_fire_projectile()
+		else:
+			hitbox.activate(stats.attack_damage, stats.attack_knockback, self)
 	if not _attack_closed and _state_time >= active_to:
 		_attack_closed = true
 		hitbox.deactivate()
 	if _state_time >= total:
 		_set_state(State.IDLE)
+
+
+## Atak dystansowy: pocisk z PlayerStats.projectile_scene leci w kierunku patrzenia.
+func _fire_projectile() -> void:
+	var projectile: Projectile = stats.projectile_scene.instantiate() as Projectile
+	if projectile == null:
+		push_warning("projectile_scene musi mieć skrypt Projectile")
+		return
+	var origin: Vector2 = Vector2(stats.projectile_origin.x * float(facing), stats.projectile_origin.y)
+	projectile.position = global_position + origin
+	get_parent().add_child(projectile)
+	var life: float = stats.projectile_range / maxf(stats.projectile_speed, 1.0)
+	projectile.launch(Vector2(float(facing), 0.0), stats.projectile_speed, stats.attack_damage,
+		stats.attack_knockback, self, stats.projectile_burn_seconds, life)
+
+
+func _raise_barrier() -> void:
+	barrier_active = true
+	barrier_left = stats.barrier_duration
+	_rig.set_barrier(true)
+	health_changed.emit(hp, stats.max_hp)
+	print("[P%d] bariera" % player_id)
+
+
+func _drop_barrier(absorbed: bool) -> void:
+	barrier_active = false
+	barrier_left = 0.0
+	barrier_cooldown_left = stats.barrier_cooldown
+	_rig.set_barrier(false, absorbed)
+	health_changed.emit(hp, stats.max_hp)
+	print("[P%d] bariera %s" % [player_id, "wchłonęła cios" if absorbed else "zgasła"])
 
 
 func _try_interact() -> void:
@@ -204,6 +244,13 @@ func _on_hit_received(hit: HitInfo) -> void:
 	last_hit_by = hit.source
 	var damage: int = hit.damage
 	var from_front: bool = signi(int(hit.direction.x)) == -facing
+	if barrier_active and from_front:
+		# Bariera stoi przed Magiem jak tarcza: wchłania cios z przodu,
+		# a cios w plecy przechodzi. Źródło widzi wynik w HitInfo.absorbed.
+		hit.absorbed = true
+		_drop_barrier(true)
+		_flash(Color(0.6, 0.95, 1.0))
+		return
 	if blocking and from_front:
 		# Blok tarczą: źródło dowie się o tym z HitInfo.blocked (wilk się odbija).
 		hit.blocked = true
@@ -262,6 +309,10 @@ func has_status() -> String:
 		parts.append("krwawi")
 	if burn_left > 0.0:
 		parts.append("płonie")
+	if barrier_active:
+		parts.append("bariera")
+	elif stats.has_barrier and barrier_cooldown_left > 0.0:
+		parts.append("bariera za %d s" % ceili(barrier_cooldown_left))
 	return ", ".join(parts)
 
 
@@ -274,6 +325,8 @@ func _apply_damage(damage: int) -> void:
 
 func _die() -> void:
 	blocking = false
+	if barrier_active:
+		_drop_barrier(false)
 	hurtbox.enabled = false
 	hitbox.deactivate()
 	velocity = Vector2.ZERO
@@ -324,6 +377,11 @@ func _tick_timers(delta: float) -> void:
 	_coyote_left = maxf(_coyote_left - delta, 0.0)
 	_jump_buffer_left = maxf(_jump_buffer_left - delta, 0.0)
 	_dodge_cooldown_left = maxf(_dodge_cooldown_left - delta, 0.0)
+	barrier_cooldown_left = maxf(barrier_cooldown_left - delta, 0.0)
+	if barrier_active:
+		barrier_left -= delta
+		if barrier_left <= 0.0:
+			_drop_barrier(false)
 
 
 func _set_state(new_state: State) -> void:

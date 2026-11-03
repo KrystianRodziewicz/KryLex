@@ -174,6 +174,10 @@ func _on_hit_landed(hit: HitInfo) -> void:
 	if state != State.CHARGE:
 		return
 	hitbox.deactivate()
+	if hit.absorbed:
+		# Bariera Maga wchłania szarżę bez ogłuszenia: wilk biegnie dalej do poślizgu.
+		print("[Wilkołak] szarżę wchłonęła bariera")
+		return
 	if hit.blocked:
 		# Odbicie od tarczy: nagroda dla Wojownika.
 		velocity.x = float(-_charge_dir) * _wstats.blocked_bounce

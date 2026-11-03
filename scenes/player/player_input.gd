@@ -41,6 +41,7 @@ func poll() -> InputFrame:
 	f.attack_pressed = Input.is_action_just_pressed(_a_attack)
 	f.dodge_pressed = Input.is_action_just_pressed(_a_dodge)
 	f.block_held = Input.is_action_pressed(_a_block)
+	f.block_pressed = Input.is_action_just_pressed(_a_block)
 	f.interact_pressed = Input.is_action_just_pressed(_a_interact)
 	f.flask_pressed = Input.is_action_just_pressed(_a_flask)
 	f.ping_pressed = Input.is_action_just_pressed(_a_ping)

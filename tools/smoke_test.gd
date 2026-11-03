@@ -36,6 +36,7 @@ func _physics_process(_delta: float) -> void:
 	if _session == null:
 		_finish()
 		return
+	var t: int = _tick - _phase_started
 	match _phase:
 		0:
 			_next_phase_if(_tick > 5, "start")
@@ -73,7 +74,6 @@ func _physics_process(_delta: float) -> void:
 				Input.action_release(&"kb_move_right")
 				_dummy_hp_before = _dummy().hp
 		4:
-			var t: int = _tick - _phase_started
 			if t == 10:
 				Input.action_press(&"kb_attack")
 			if t == 13:
@@ -90,6 +90,35 @@ func _physics_process(_delta: float) -> void:
 				_check(_p2_min_y < 170.0, "P2 skoczył na padzie (min y = %.0f, start 186)" % _p2_min_y)
 				_check(WorldStore.count_events(&"player_death") == 0, "nikt nie zginął po drodze")
 		5:
+			# P2 (Mag) schodzi z półki w zasięg pocisku i strzela w kukłę z dystansu.
+			var p2: Player = _session.players[1]
+			# Za schodkiem (x > 340) P2 stoi na podłodze, na wysokości kukły.
+			if p2.global_position.x < 362.0 or not p2.is_on_floor():
+				Input.action_press(&"pad_move_right")
+			else:
+				Input.action_release(&"pad_move_right")
+				_dummy_hp_before = _dummy().hp
+				_next_phase_if(true, "P2 w zasięgu pocisku (x = %.0f)" % p2.global_position.x)
+			if t > 60 * 8:
+				_fail("P2 nie zszedł z półki")
+				_finish()
+		6:
+			if t == 5:
+				Input.action_press(&"pad_attack")
+			if t == 8:
+				Input.action_release(&"pad_attack")
+			# Blok dopiero po zakończeniu ataku (0,3 s), inaczej wciśnięcie przepada.
+			if t == 40:
+				Input.action_press(&"pad_block")
+			if t == 43:
+				Input.action_release(&"pad_block")
+			_next_phase_if(t > 90, "pocisk Maga i bariera")
+			if _phase == 7:
+				var p2: Player = _session.players[1]
+				_check(_dummy().hp < _dummy_hp_before, "pocisk ognia trafił kukłę z dystansu (%d -> %d)" % [
+					_dummy_hp_before, _dummy().hp])
+				_check(p2.barrier_active, "bariera Maga stoi po wciśnięciu bloku")
+		7:
 			_finish()
 
 

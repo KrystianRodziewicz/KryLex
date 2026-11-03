@@ -29,7 +29,7 @@ Ostrzeżenia o brakujących typach i niebezpiecznych wywołaniach są w `project
 | Skok | Spacja | A |
 | Atak | J | X |
 | Unik | K | B |
-| Blok (tylko Wojownik) | L | LT |
+| Blok (Wojownik: tarcza; Mag: bariera) | L | LT |
 | Interakcja | E | Y |
 | Flaszka (krok 3) | Q | LB |
 | Ping (M1) | F | RB |
@@ -72,24 +72,26 @@ godot --headless --path . res://tools/smoke_test_s3.tscn
 
 Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę samą ścieżkę co prawdziwe urządzenia.
 
-## Grafika: rig z części (próba)
+## Grafika: rigi z części (próba)
 
-Wojownik ma pierwszą prawdziwą grafikę: postać złożoną z części (głowa, tułów, dwie ręce, dwie nogi, miecz, tarcza), każda jako mały pikselowy sprite, a animacje to klatki kluczowe na obrotach przegubów w `AnimationPlayer`. Mag zostaje na prostokątach, dopóki próba nie zostanie oceniona.
+Obie klasy mają pierwszą prawdziwą grafikę: postać złożoną z części (głowa, tułów, dwie ręce, dwie nogi, broń), każda jako mały pikselowy sprite, a animacje to klatki kluczowe na obrotach przegubów w `AnimationPlayer`. Wojownik to rycerz z mieczem i tarczą, Mag ma spiczasty kapelusz, brodę, szatę z gwiazdą, laskę z kryształem i fokus (świecącą kulę). Wspólna mechanika siedzi w `PartsRig`, a każda klasa dodaje tylko własne animacje.
 
-- Części rysuje skrypt [`tools/art/make_warrior_parts.py`](../tools/art/make_warrior_parts.py): każda część to mapa ASCII (znak = piksel, litera = kolor z palety). Zmiana wyglądu to edycja mapy i ponowne uruchomienie; wynik trafia do `assets/sprites/warrior/`.
-- Rig: `scenes/player/rigs/warrior_rig.tscn` (układ przegubów) i `warrior_rig.gd` (animacje w kodzie: idle, run, jump, fall, attack, dodge, block, block_walk, hurt, knockdown, dead). Każdy rig dziedziczy po `PlayerRig`, a gracz mówi mu tylko `play(nazwa, czas)`.
+Mag walczy z dystansu (README, sekcja 3): atak to pocisk ognia z laski (`PlayerStats.projectile_scene`, zasięg 220 px, podpala), czyli czasownik *Podpal* w wersji mistrza. Obrona to bariera pod klawiszem bloku: łuk przed Magiem, wyższy od niego, po stronie, w którą patrzy. Wchłania jeden cios z przodu (cios w plecy przechodzi, jak przy tarczy), gaśnie po 5 s albo po trafieniu i odnawia się 20 s (*Osłoń* w wersji słabej). Łuk jest pocięty na 10 poziomych odłamków (fragmenty jednej tekstury przez `region_rect`): przy pojawianiu odłamki wsuwają się od góry i od dołu jednocześnie i spotykają na środku z błyskiem (ok. 0,35 s), bariera stoi pulsując, a gdy wchłonie cios, odłamki wybuchają na zewnątrz (0,35 s); gdy minie jej czas, kruszą się i opadają (0,5 s). To tweeny w `MageRig.set_barrier`, nie klatki. Szarża wilka wchłonięta barierą nie ogłusza wilka, w odróżnieniu od bloku tarczą. Zasób współpracy, który ma ograniczać zaklęcia Maga, dojdzie przy pętli klas.
+
+- Części rysuje skrypt [`tools/art/make_parts.py`](../tools/art/make_parts.py): każda część to mapa ASCII (znak = piksel, litera = kolor z palety), postacie w słowniku `CHARACTERS`. Zmiana wyglądu to edycja mapy i ponowne uruchomienie; wynik trafia do `assets/sprites/<postać>/`.
+- Rigi: `scenes/player/rigs/warrior_rig.tscn` i `mage_rig.tscn` (układ przegubów) oraz `warrior_rig.gd` i `mage_rig.gd` (animacje w kodzie: idle, run, jump, fall, attack, dodge, hurt, knockdown, dead; Wojownik też block i block_walk). Każdy rig dziedziczy po `PlayerRig`, a gracz mówi mu tylko `play(nazwa, czas)`; brakująca animacja wraca do idle.
 - Okno ataku nadal wyznacza `PlayerStats`; rig dopasowuje tempo animacji do tego czasu, nie odwrotnie. Dotyczy to też uniku: Wojownik robi fikołek w 0,45 s (`dodge_duration`), Mag dalej skacze w 0,28 s.
 - Ta sama animacja nie startuje od nowa (skok trzyma pozę do szczytu lotu), a kolejna przenika z poprzedniej przez 80 ms blendu, więc przejścia bieg → skok → lot nie szarpią.
 - Podgląd wszystkich animacji w siatce: `godot --path . res://tools/anim_preview.tscn` (klatki do pliku: dodać `--write-movie out/f.png --fixed-fps 20 --quit-after 30`).
 
-![Podgląd animacji Wojownika](anim-wojownik.png)
+![Podgląd animacji Wojownika i Maga](anim-wojownik.png)
 
 ## Co jest w repo
 
 | Folder | Co | Właściciel |
 |---|---|---|
 | `scenes/main.tscn`, `scenes/main.gd` | Sesja lokalna: spawn dwóch postaci, podmiana pomieszczeń, punkt kontrolny, powrót po śmierci obojga. | wspólne |
-| `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`), `rigs/` (grafika postaci: `PlayerRig`, `BlockRig`, `WarriorRig`). | Krystian (rigi: Alex) |
+| `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`), `rigs/` (grafika postaci: `PlayerRig`, `BlockRig`, `PartsRig`, `WarriorRig`, `MageRig`). | Krystian (rigi: Alex) |
 | `assets/sprites/` | Pikselowe części postaci generowane skryptem z `tools/art/`. | Alex |
 | `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje, opcjonalnie z odliczaniem, po którym przeciąga partnera), `graybox/` (bloki), `osada`, `s1_za_plotem`, `s2_porzucony_woz`, `s3_rozstaje`. | Alex |
 | `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik), dźwignia, krata i `DualLeverGate` (dźwignia na dwóch), `hazard_area` (obrażenia od upadku). | Alex |
