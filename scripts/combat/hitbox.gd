@@ -14,6 +14,7 @@ var damage: int = 0
 var knockback: float = 0.0
 var knockdown: bool = false
 var bleed_seconds: float = 0.0
+var burn_seconds: float = 0.0
 var source: Node2D = null
 
 var _active: bool = false
@@ -29,12 +30,13 @@ func _ready() -> void:
 
 
 func activate(p_damage: int, p_knockback: float, p_source: Node2D,
-		p_knockdown: bool = false, p_bleed_seconds: float = 0.0) -> void:
+		p_knockdown: bool = false, p_bleed_seconds: float = 0.0, p_burn_seconds: float = 0.0) -> void:
 	damage = p_damage
 	knockback = p_knockback
 	source = p_source
 	knockdown = p_knockdown
 	bleed_seconds = p_bleed_seconds
+	burn_seconds = p_burn_seconds
 	_already_hit.clear()
 	_active = true
 	# Zmiana monitoringu jest zablokowana wewnątrz sygnału kolizji,
@@ -63,6 +65,7 @@ func _on_area_entered(area: Area2D) -> void:
 	hit.knockback = knockback
 	hit.knockdown = knockdown
 	hit.bleed_seconds = bleed_seconds
+	hit.burn_seconds = burn_seconds
 	hit.source = source
 	var origin: Vector2 = source.global_position if source != null else global_position
 	var dx: float = hurtbox.global_position.x - origin.x

@@ -13,6 +13,8 @@ var knockback: float = 0.0
 var knockdown: bool = false
 ## Krwawienie w sekundach; 0 = brak.
 var bleed_seconds: float = 0.0
+## Podpalenie w sekundach; 0 = brak. Status żywiołowy z README, sekcja 4.
+var burn_seconds: float = 0.0
 
 ## Wynik, wypełnia go cel: true, gdy trafienie zatrzymała tarcza.
 ## Źródło czyta to z sygnału [signal Hitbox.landed] (wilk odbija się od tarczy).

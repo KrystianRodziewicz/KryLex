@@ -13,7 +13,10 @@ func bind_player(player: Player) -> void:
 	label.add_theme_font_size_override(&"font_size", 10)
 	_players_box.add_child(label)
 	var refresh: Callable = func(current: int, maximum: int) -> void:
-		var status: String = "" if player.is_alive() else "  (martwy)"
+		var status: String = "  (martwy)" if not player.is_alive() else ""
+		var effects: String = player.has_status()
+		if player.is_alive() and effects != "":
+			status = "  (%s)" % effects
 		label.text = "P%d %s [%s]  HP %d/%d%s" % [
 			player.player_id, player.stats.label, player.input.profile_label(),
 			current, maximum, status]

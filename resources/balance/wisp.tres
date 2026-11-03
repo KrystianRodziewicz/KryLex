@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WispStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/balance/wisp_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+max_hp = 1
+posture_max = 100000
+crit_multiplier = 1.0
+stun_seconds = 0.0
+move_speed = 60.0
+gravity = 0.0
+max_fall_speed = 0.0
+hit_flinch = 0.0
+hover_height = 32.0
+bob_amplitude = 3.0
+bob_speed = 4.0
+notice_distance = 150.0
+flee_distance = 96.0
+flee_speed = 118.0
+tempt_delay = 1.0
+tempt_speed = 55.0
+tempt_hold_distance = 120.0
+throw_distance = 150.0
+throw_cooldown = 3.0
+spark_speed = 95.0
+spark_damage = 4
+spark_burn_seconds = 2.0
+spark_lifetime = 4.0

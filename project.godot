@@ -144,6 +144,7 @@ debug_overlay={
 2d_physics/layer_7="enemy_hitbox"
 2d_physics/layer_8="interactable"
 2d_physics/layer_9="bounds"
+2d_physics/layer_10="enemy_floor"
 
 [physics]
 

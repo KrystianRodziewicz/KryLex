@@ -5,6 +5,7 @@ Stan: **M0, krok 1** (dwie postacie w jednym procesie, bez sieci). Kolejne kroki
 ![Osada w kroku 1](krok1-osada.png)
 ![S1 i kukła w kroku 1](krok1-s1.png)
 ![S2: szarża wilkołaka](s2-wilkolak.png)
+![S3: ognik wabi nad rozpadlinę](s3-ognik.png)
 
 Folder `docs/` ma plik `.gdignore`, więc Godot nie importuje tych obrazków jako zasobów gry.
 
@@ -63,6 +64,12 @@ Test dymny S2 (wilkołak wbiega po wejściu w strefę dźwigni, szarża trafia i
 godot --headless --path . res://tools/smoke_test_s2.tscn
 ```
 
+Test dymny S3 (kleszcze dwóch wilków z przeciwnych krawędzi, ognik cofa się przed goniącym go graczem nad rozpadlinę, upadek zadaje obrażenia, wyjście na dnie po 5 s przeciąga partnera):
+
+```bash
+godot --headless --path . res://tools/smoke_test_s3.tscn
+```
+
 Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę samą ścieżkę co prawdziwe urządzenia.
 
 ## Co jest w repo
@@ -71,9 +78,9 @@ Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę sa
 |---|---|---|
 | `scenes/main.tscn`, `scenes/main.gd` | Sesja lokalna: spawn dwóch postaci, podmiana pomieszczeń, punkt kontrolny, powrót po śmierci obojga. | wspólne |
 | `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`). | Krystian |
-| `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje), `graybox/` (bloki), `osada.tscn`, `s1_za_plotem.tscn`, `s2_porzucony_woz.tscn`. | Alex |
-| `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik), dźwignia, krata i `DualLeverGate` (dźwignia na dwóch). | Alex |
-| `scenes/enemies/` | `enemy.gd` (baza: HP, postawa, ogłuszenie, okno krytyczne, śmierć do WorldStore), `werewolf` (wilkołak z karty), `enemy_spawn_trigger` (wejście z krawędzi po mignięciu oczu), `training_dummy` (kukła, nie wróg). | Alex |
+| `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje, opcjonalnie z odliczaniem, po którym przeciąga partnera), `graybox/` (bloki), `osada`, `s1_za_plotem`, `s2_porzucony_woz`, `s3_rozstaje`. | Alex |
+| `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik), dźwignia, krata i `DualLeverGate` (dźwignia na dwóch), `hazard_area` (obrażenia od upadku). | Alex |
+| `scenes/enemies/` | `enemy.gd` (baza: HP, postawa, ogłuszenie, okno krytyczne, śmierć do WorldStore), `werewolf` (wilkołak z karty), `wisp` i `spark` (Błędny Ognik z iskrą), `enemy_spawn_trigger` (wejście z krawędzi po mignięciu oczu), `training_dummy` (kukła, nie wróg). | Alex |
 | `scenes/ui/` | HUD: pomieszczenie, HP obu postaci, ściąga sterowania. | wspólne |
 | `scripts/` | Wspólne klasy: `InputFrame`, `Hitbox`, `Hurtbox`, `HitInfo`, `Interactable`, `RoomCamera`. | wspólne |
 | `resources/balance/` | `PlayerStats` i dwa `.tres`: Wojownik, Mag. | Alex |
@@ -85,6 +92,7 @@ Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę sa
 
 - **Krok 2:** dwie instancje przez localhost (`Debug > Customize Run Instances`), host spawnuje oboje, klient wysyła `InputFrame.to_packed()`.
 - **Krok 3:** wspólna flaszka zatwierdzana przez hosta, godot-sqlite za `WorldStore`, migracja `001_init.sql`.
-- Pozostałe pomieszczenia Boru (S3 i dalej), kolejne moby (ognik, strzyga, bies), parowanie, statusy żywiołowe, czasowniki *Przerwij* i *Zamroź* przeciw wilkowi.
+- Gęstwina (G1 i dalej), strzyga i bies, parowanie, zamrożenie i porażenie (podpalenie już jest jako status po iskrze ognika), czasowniki *Przerwij* i *Zamroź*.
+- Decyzja z sekcji 7 README o rozdzielaniu się graczy: dziś rozpadlina w S3 czeka 5 s i przeciąga partnera (propozycja A z `technika.md`), zwykłe wyjścia czekają bez końca.
 - Wskaźnik partnera poza ekranem: S2 rozdziela graczy o ekran, a dziś jedna kamera po prostu pokazuje środek między nimi.
 - Osobne kamery dla graczy: dziś jedna kamera śledzi środek między postaciami, bo oboje są w jednym oknie.

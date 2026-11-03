@@ -57,3 +57,6 @@ extends Resource
 ## Krwawienie: tyle obrażeń co pół sekundy, przez czas z trafienia.
 @export var bleed_damage: int = 1
 @export var bleed_interval: float = 0.5
+## Podpalenie: obrażenia w czasie (README, sekcja 4), mocniejsze od krwawienia.
+@export var burn_damage: int = 2
+@export var burn_interval: float = 0.5

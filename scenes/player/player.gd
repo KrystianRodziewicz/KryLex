@@ -31,10 +31,13 @@ var frame: InputFrame = InputFrame.new()
 var last_hit_by: Node2D = null
 ## Pozostały czas krwawienia w sekundach.
 var bleed_left: float = 0.0
+## Pozostały czas podpalenia w sekundach.
+var burn_left: float = 0.0
 
 var _state_time: float = 0.0
 var _hurt_stun: float = 0.0
 var _bleed_tick: float = 0.0
+var _burn_tick: float = 0.0
 var _coyote_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _dodge_cooldown_left: float = 0.0
@@ -210,6 +213,8 @@ func _on_hit_received(hit: HitInfo) -> void:
 		return
 	if hit.bleed_seconds > 0.0:
 		bleed_left = maxf(bleed_left, hit.bleed_seconds)
+	if hit.burn_seconds > 0.0:
+		burn_left = maxf(burn_left, hit.burn_seconds)
 	velocity = Vector2(hit.direction.x * hit.knockback, stats.hurt_knockback_up)
 	_hurt_stun = stats.knockdown_stun if hit.knockdown else stats.hurt_stun
 	if state == State.ATTACK:
@@ -220,13 +225,39 @@ func _on_hit_received(hit: HitInfo) -> void:
 
 
 func _tick_bleed(delta: float) -> void:
-	if bleed_left <= 0.0 or state == State.DEAD:
+	if state == State.DEAD:
 		return
-	bleed_left = maxf(bleed_left - delta, 0.0)
-	_bleed_tick += delta
-	if _bleed_tick >= stats.bleed_interval:
-		_bleed_tick -= stats.bleed_interval
-		_apply_damage(stats.bleed_damage)
+	if bleed_left > 0.0:
+		bleed_left = maxf(bleed_left - delta, 0.0)
+		_bleed_tick += delta
+		if _bleed_tick >= stats.bleed_interval:
+			_bleed_tick -= stats.bleed_interval
+			_apply_damage(stats.bleed_damage)
+	if burn_left > 0.0 and state != State.DEAD:
+		burn_left = maxf(burn_left - delta, 0.0)
+		_burn_tick += delta
+		if _burn_tick >= stats.burn_interval:
+			_burn_tick -= stats.burn_interval
+			_flash(Color(1.0, 0.7, 0.3))
+			_apply_damage(stats.burn_damage)
+
+
+## Obrażenia bez trafienia hitboxem: upadek, pułapka, otoczenie.
+func apply_direct_damage(amount: int, source: Node2D = null) -> void:
+	if state == State.DEAD:
+		return
+	last_hit_by = source
+	_flash(Color(1.0, 0.5, 0.5))
+	_apply_damage(amount)
+
+
+func has_status() -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if bleed_left > 0.0:
+		parts.append("krwawi")
+	if burn_left > 0.0:
+		parts.append("płonie")
+	return ", ".join(parts)
 
 
 func _apply_damage(damage: int) -> void:
@@ -248,6 +279,7 @@ func _die() -> void:
 func heal_full() -> void:
 	hp = stats.max_hp
 	bleed_left = 0.0
+	burn_left = 0.0
 	health_changed.emit(hp, stats.max_hp)
 	if state == State.DEAD:
 		revive()

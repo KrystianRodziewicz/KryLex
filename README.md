@@ -114,7 +114,7 @@ Ten plik to wizja. Szczegóły implementacyjne żyją w `docs/`:
 - [`docs/uruchomienie.md`](docs/uruchomienie.md): jak otworzyć projekt, sterowanie, sprawdzenie i test dymny bez edytora, co leży w którym folderze.
 - `docs/M0-netcode-spec.md` – specyfikacja prototypu sieci *(do napisania)*.
 
-> **Stan prac:** M0, krok 1 gotowy – dwie postacie (Wojownik na klawiaturze, Mag na padzie) w jednym procesie, Osada, S1 i S2 jako graybox, brama na dwóch, pierwszy wilkołak z kartą (szarża, poślizg, odbicie od tarczy, postawa), dźwignia na dwóch z kratą. Krok 2 (sieć) w toku po stronie Krystiana. Uruchomienie i testy: [`docs/uruchomienie.md`](docs/uruchomienie.md).
+> **Stan prac:** M0, krok 1 gotowy – dwie postacie (Wojownik na klawiaturze, Mag na padzie) w jednym procesie, Osada i cały Skraj (S1, S2, S3) jako graybox, brama na dwóch, wilkołak i Błędny Ognik według kart (szarża, poślizg, odbicie od tarczy, postawa, wabienie, iskra z podpaleniem), dźwignia na dwóch z kratą, rozpadlina z obrażeniami od upadku. Krok 2 (sieć) w toku po stronie Krystiana. Uruchomienie i testy: [`docs/uruchomienie.md`](docs/uruchomienie.md).
 
 ---
 

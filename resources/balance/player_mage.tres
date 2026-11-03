@@ -36,3 +36,5 @@ knockdown_stun = 0.7
 hurt_knockback_up = -90.0
 bleed_damage = 1
 bleed_interval = 0.5
+burn_damage = 2
+burn_interval = 0.5

@@ -103,8 +103,11 @@ func _on_player_died(player: Player) -> void:
 	# Jedno zdarzenie śmierci, z którego czytają wszystkie systemy (README, sekcja 4).
 	var killer: StringName = &""
 	var enemy: Enemy = player.last_hit_by as Enemy
+	var hazard: HazardArea = player.last_hit_by as HazardArea
 	if enemy != null:
 		killer = enemy.enemy_id
+	elif hazard != null:
+		killer = hazard.hazard_id
 	WorldStore.record_event(&"player_death", player.player_id, "", killer, player.global_position)
 	for other: Player in players:
 		if other.is_alive():

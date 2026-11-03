@@ -14,9 +14,15 @@ signal triggered(target_room: StringName, entry: StringName)
 @export var requires_both: bool = true
 @export var caption: String = ""
 @export var size: Vector2 = Vector2(32, 48)
+## Po tylu sekundach czekania wyjście przeciąga partnera (0 = czeka bez końca).
+## Reguła jednego pomieszczenia, propozycja A w docs/technika.md: rozpadlina
+## w S3 i skok w K2 nie mogą zostawić gracza na dnie na zawsze.
+@export var pull_partner_after: float = 0.0
+
+var fired: bool = false
 
 var _inside: Array[Player] = []
-var _fired: bool = false
+var _pull_left: float = -1.0
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D as CollisionShape2D
 @onready var _rect: ColorRect = $Rect as ColorRect
@@ -60,7 +66,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 
 func _check() -> void:
-	if _fired:
+	if fired:
 		return
 	var present: int = 0
 	for player: Player in _inside:
@@ -68,15 +74,39 @@ func _check() -> void:
 			present += 1
 	var needed: int = _alive_player_count() if requires_both else 1
 	if present > 0 and present >= needed:
-		_fired = true
-		_label.text = caption
-		triggered.emit(target_room, entry)
+		_fire()
 	else:
 		_refresh()
 
 
+func _process(delta: float) -> void:
+	if fired or pull_partner_after <= 0.0:
+		return
+	var someone_waiting: bool = false
+	for player: Player in _inside:
+		if player.is_alive():
+			someone_waiting = true
+			break
+	if not someone_waiting:
+		_pull_left = -1.0
+		return
+	if _pull_left < 0.0:
+		_pull_left = pull_partner_after
+	_pull_left -= delta
+	_label.text = "%s\nPartner za %d s" % [caption, ceili(maxf(_pull_left, 0.0))]
+	if _pull_left <= 0.0:
+		print("[Wyjście] %s przeciąga partnera" % caption)
+		_fire()
+
+
+func _fire() -> void:
+	fired = true
+	_label.text = caption
+	triggered.emit(target_room, entry)
+
+
 func _refresh() -> void:
-	var waiting: bool = not _inside.is_empty() and not _fired
+	var waiting: bool = not _inside.is_empty() and not fired
 	_label.text = caption + ("\nCzekam na partnera" if waiting else "")
 	_rect.color = Color(0.9, 0.8, 0.4, 0.35) if waiting else Color(0.6, 0.6, 0.7, 0.2)
 
