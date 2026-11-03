@@ -40,6 +40,12 @@ var burn_left: float = 0.0
 var barrier_active: bool = false
 var barrier_left: float = 0.0
 var barrier_cooldown_left: float = 0.0
+## Żywioł pocisku (klasy dystansowe): zmieniany klawiszem R / prawą gałką.
+var current_element: Elements.Kind = Elements.Kind.FIRE
+## Przerwij: odnowienie uderzenia tarczą albo impulsu.
+var interrupt_cooldown_left: float = 0.0
+## Zamrożenie gracza: spowolnienie w sekundach.
+var slow_left: float = 0.0
 
 var _state_time: float = 0.0
 var _hurt_stun: float = 0.0
@@ -51,6 +57,15 @@ var _jump_buffer_left: float = 0.0
 var _dodge_cooldown_left: float = 0.0
 var _attack_opened: bool = false
 var _attack_closed: bool = false
+## Profil bieżącego ataku: zwykły cios, pocisk albo Przerwij.
+var _atk_startup: float = 0.0
+var _atk_active: float = 0.0
+var _atk_recovery: float = 0.0
+var _atk_hit: HitInfo = HitInfo.new()
+var _atk_hitbox: Hitbox = null
+var _atk_anim: StringName = &"attack"
+var _atk_projectile: bool = false
+var _atk_burst: bool = false
 
 @onready var input: PlayerInput = $PlayerInput as PlayerInput
 @onready var visual: Node2D = $Visual as Node2D
@@ -59,6 +74,7 @@ var _attack_closed: bool = false
 @onready var hitbox_shape: CollisionShape2D = $Hitbox/CollisionShape2D as CollisionShape2D
 @onready var hurtbox: Hurtbox = $Hurtbox as Hurtbox
 @onready var interact_area: Area2D = $InteractArea as Area2D
+@onready var impulse_hitbox: Hitbox = $ImpulseHitbox as Hitbox
 
 
 func _ready() -> void:
@@ -80,6 +96,11 @@ func _physics_process(delta: float) -> void:
 	frame = input.poll()
 	_tick_timers(delta)
 	_tick_bleed(delta)
+	# Zmiana żywiołu nie jest akcją z oknem czasu, więc działa w każdym stanie.
+	if frame.element_pressed and stats.projectile_scene != null and state != State.DEAD:
+		current_element = Elements.next(current_element)
+		health_changed.emit(hp, stats.max_hp)
+		print("[P%d] żywioł: %s" % [player_id, Elements.label(current_element)])
 	match state:
 		State.DEAD:
 			_apply_gravity(delta)
@@ -115,6 +136,8 @@ func _tick_locomotion(delta: float) -> void:
 		_raise_barrier()
 	var control: float = 1.0 if on_floor else stats.air_control
 	var speed: float = stats.move_speed * (stats.block_move_multiplier if blocking else 1.0)
+	if slow_left > 0.0:
+		speed *= 0.5
 	if is_zero_approx(frame.move.x):
 		velocity.x = move_toward(velocity.x, 0.0, stats.friction * control * delta)
 	else:
@@ -135,6 +158,9 @@ func _tick_locomotion(delta: float) -> void:
 		return
 	if frame.attack_pressed and not blocking:
 		_start_attack()
+		return
+	if frame.interrupt_pressed and on_floor and interrupt_cooldown_left <= 0.0:
+		_start_interrupt()
 		return
 	if frame.interact_pressed:
 		_try_interact()
@@ -169,9 +195,43 @@ func _tick_dodge(delta: float) -> void:
 
 
 func _start_attack() -> void:
+	var hit: HitInfo = HitInfo.new()
+	hit.damage = stats.attack_damage
+	hit.knockback = stats.attack_knockback
+	hit.source = self
+	_begin_swing(&"attack", stats.attack_startup, stats.attack_active, stats.attack_recovery, hit,
+		hitbox, stats.projectile_scene != null, false)
+
+
+## Przerwij (README, sekcja 3): Wojownik uderza tarczą, Mag wypuszcza impuls wokół siebie.
+func _start_interrupt() -> void:
+	interrupt_cooldown_left = stats.interrupt_cooldown
+	var hit: HitInfo = HitInfo.new()
+	hit.damage = stats.interrupt_damage
+	hit.knockback = stats.interrupt_knockback
+	hit.posture_damage = stats.interrupt_posture
+	hit.interrupt = true
+	hit.stun_seconds = stats.interrupt_stun
+	hit.source = self
+	var impulse: bool = stats.interrupt_kind == 1
+	print("[P%d] %s" % [player_id, "impuls" if impulse else "uderzenie tarczą"])
+	_begin_swing(&"impulse" if impulse else &"bash", stats.interrupt_startup, stats.interrupt_active,
+		stats.interrupt_recovery, hit, impulse_hitbox if impulse else hitbox, false, impulse)
+
+
+func _begin_swing(anim: StringName, startup: float, active: float, recovery: float, hit: HitInfo,
+		p_hitbox: Hitbox, projectile: bool, burst: bool) -> void:
 	blocking = false
 	_attack_opened = false
 	_attack_closed = false
+	_atk_anim = anim
+	_atk_startup = startup
+	_atk_active = active
+	_atk_recovery = recovery
+	_atk_hit = hit
+	_atk_hitbox = p_hitbox
+	_atk_projectile = projectile
+	_atk_burst = burst
 	hitbox_shape.position.x = stats.attack_reach * float(facing)
 	_set_state(State.ATTACK)
 
@@ -180,18 +240,20 @@ func _tick_attack(delta: float) -> void:
 	_apply_gravity(delta)
 	var decel: float = stats.friction * (1.0 if is_on_floor() else stats.air_control) * delta
 	velocity.x = move_toward(velocity.x, 0.0, decel)
-	var active_from: float = stats.attack_startup
-	var active_to: float = active_from + stats.attack_active
-	var total: float = active_to + stats.attack_recovery
+	var active_from: float = _atk_startup
+	var active_to: float = active_from + _atk_active
+	var total: float = active_to + _atk_recovery
 	if not _attack_opened and _state_time >= active_from:
 		_attack_opened = true
-		if stats.projectile_scene != null:
+		if _atk_projectile:
 			_fire_projectile()
 		else:
-			hitbox.activate(stats.attack_damage, stats.attack_knockback, self)
+			_atk_hitbox.activate_hit(_atk_hit)
+		if _atk_burst:
+			_rig.impulse_burst()
 	if not _attack_closed and _state_time >= active_to:
 		_attack_closed = true
-		hitbox.deactivate()
+		_atk_hitbox.deactivate()
 	if _state_time >= total:
 		_set_state(State.IDLE)
 
@@ -207,7 +269,8 @@ func _fire_projectile() -> void:
 	get_parent().add_child(projectile)
 	var life: float = stats.projectile_range / maxf(stats.projectile_speed, 1.0)
 	projectile.launch(Vector2(float(facing), 0.0), stats.projectile_speed, stats.attack_damage,
-		stats.attack_knockback, self, stats.projectile_burn_seconds, life)
+		stats.attack_knockback, self, current_element, stats.projectile_element_seconds, life)
+	projectile.hitbox.template.posture_damage = stats.projectile_posture_damage
 
 
 func _raise_barrier() -> void:
@@ -265,12 +328,14 @@ func _on_hit_received(hit: HitInfo) -> void:
 		return
 	if hit.bleed_seconds > 0.0:
 		bleed_left = maxf(bleed_left, hit.bleed_seconds)
-	if hit.burn_seconds > 0.0:
-		burn_left = maxf(burn_left, hit.burn_seconds)
+	if hit.element == Elements.Kind.FIRE and hit.element_seconds > 0.0:
+		burn_left = maxf(burn_left, hit.element_seconds)
+	if hit.element == Elements.Kind.ICE and hit.element_seconds > 0.0:
+		slow_left = maxf(slow_left, hit.element_seconds)
 	velocity = Vector2(hit.direction.x * hit.knockback, stats.hurt_knockback_up)
 	_hurt_stun = stats.knockdown_stun if hit.knockdown else stats.hurt_stun
-	if state == State.ATTACK:
-		hitbox.deactivate()
+	if state == State.ATTACK and _atk_hitbox != null:
+		_atk_hitbox.deactivate()
 	hurtbox.enabled = true
 	_flash(Color(1.0, 0.4, 0.4))
 	_set_state(State.HURT)
@@ -303,12 +368,25 @@ func apply_direct_damage(amount: int, source: Node2D = null) -> void:
 	_apply_damage(amount)
 
 
+## Podpowiedź do HUD: żywioł pocisku i odnowienie Przerwij.
+func combat_hint() -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if stats.projectile_scene != null:
+		parts.append(Elements.label(current_element))
+	if interrupt_cooldown_left > 1.0:
+		var verb: String = "impuls" if stats.interrupt_kind == 1 else "tarcza"
+		parts.append("%s za %d s" % [verb, ceili(interrupt_cooldown_left)])
+	return " · ".join(parts)
+
+
 func has_status() -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if bleed_left > 0.0:
 		parts.append("krwawi")
 	if burn_left > 0.0:
 		parts.append("płonie")
+	if slow_left > 0.0:
+		parts.append("zamrożony")
 	if barrier_active:
 		parts.append("bariera")
 	elif stats.has_barrier and barrier_cooldown_left > 0.0:
@@ -338,6 +416,7 @@ func heal_full() -> void:
 	hp = stats.max_hp
 	bleed_left = 0.0
 	burn_left = 0.0
+	slow_left = 0.0
 	health_changed.emit(hp, stats.max_hp)
 	if state == State.DEAD:
 		revive()
@@ -378,6 +457,8 @@ func _tick_timers(delta: float) -> void:
 	_jump_buffer_left = maxf(_jump_buffer_left - delta, 0.0)
 	_dodge_cooldown_left = maxf(_dodge_cooldown_left - delta, 0.0)
 	barrier_cooldown_left = maxf(barrier_cooldown_left - delta, 0.0)
+	interrupt_cooldown_left = maxf(interrupt_cooldown_left - delta, 0.0)
+	slow_left = maxf(slow_left - delta, 0.0)
 	if barrier_active:
 		barrier_left -= delta
 		if barrier_left <= 0.0:
@@ -406,7 +487,7 @@ func _update_visual() -> void:
 		State.DODGE:
 			_rig.play(&"dodge", stats.dodge_duration)
 		State.ATTACK:
-			_rig.play(&"attack", stats.attack_startup + stats.attack_active + stats.attack_recovery)
+			_rig.play(_atk_anim, _atk_startup + _atk_active + _atk_recovery)
 		State.AIR:
 			_rig.play(&"jump" if velocity.y < 0.0 else &"fall")
 		State.RUN:

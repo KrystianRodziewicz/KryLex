@@ -2,8 +2,8 @@ class_name Projectile
 extends Node2D
 ## Pocisk z hitboxem: leci po prostej, znika po trafieniu albo po czasie
 ## życia. Warstwy kolizji ustawia scena (pocisk gracza trafia hurtboxy
-## wrogów, pocisk wroga hurtboxy graczy). W sieci (krok 2 M0) spawnuje go
-## host, a klient tylko odtwarza.
+## wrogów, pocisk wroga hurtboxy graczy). Kolor bierze z żywiołu.
+## W sieci (krok 2 M0) spawnuje go host, a klient tylko odtwarza.
 
 var velocity: Vector2 = Vector2.ZERO
 var lifetime: float = 2.0
@@ -12,12 +12,15 @@ var lifetime: float = 2.0
 
 
 func launch(direction: Vector2, speed: float, damage: int, knockback: float, source: Node2D,
-		burn_seconds: float = 0.0, life: float = 2.0) -> void:
+		element: Elements.Kind = Elements.Kind.NONE, element_seconds: float = 0.0,
+		life: float = 2.0) -> void:
 	velocity = direction.normalized() * speed
 	lifetime = life
 	rotation = velocity.angle()
+	if element != Elements.Kind.NONE:
+		modulate = Elements.color(element)
 	hitbox.landed.connect(_on_landed)
-	hitbox.activate(damage, knockback, source, false, 0.0, burn_seconds)
+	hitbox.activate(damage, knockback, source, false, 0.0, element, element_seconds)
 
 
 func _physics_process(delta: float) -> void:

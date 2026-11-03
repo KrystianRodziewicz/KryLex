@@ -79,11 +79,17 @@ oMMo
 .oo.
 """,
     # Nagolenica z kolanem i but.
-    "leg": """
+    # Noga w dwóch częściach: udo od biodra (5 rzędów) i goleń od kolana
+    # (5 rzędów, zaokrąglona góra chowa się pod udem, gdy noga jest prosta).
+    "thigh": """
 .oo.
 ommo
 ommo
 oMMo
+ommo
+""",
+    "shin": """
+.oo.
 ommo
 ommo
 obbo
@@ -163,11 +169,15 @@ osso
 .oo.
 """,
     # Ciemne nogawki i but.
-    "leg": """
+    "thigh": """
 .oo.
 oddo
 oddo
 oddo
+oddo
+""",
+    "shin": """
+.oo.
 oddo
 oddo
 obbo
@@ -211,6 +221,25 @@ ocCco
 oCCCo
 occco
 .ooo.
+""",
+    # Pierścień impulsu: rozszerza się i gaśnie.
+    "ring": """
+.....TTTTTT.....
+...TTttttttTT...
+..Tt........tT..
+.Tt..........tT.
+.T............T.
+T..............T
+T..............T
+T..............T
+T..............T
+T..............T
+T..............T
+.T............T.
+.Tt..........tT.
+..Tt........tT..
+...TTttttttTT...
+.....TTTTTT.....
 """,
     # Bariera: łuk ")" przed postacią, wyższy od niej, jasna krawędź zewnętrzna.
     "barrier": """

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddocjvgq8j57t"
-path="res://.godot/imported/leg.png-31667425844761bcd4af7951673e9e93.ctex"
+uid="uid://katnsjndydo1"
+path="res://.godot/imported/shin.png-379aeb5e4b04f764bcef5eb582f25a91.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/warrior/leg.png"
-dest_files=["res://.godot/imported/leg.png-31667425844761bcd4af7951673e9e93.ctex"]
+source_file="res://assets/sprites/warrior/shin.png"
+dest_files=["res://.godot/imported/shin.png-379aeb5e4b04f764bcef5eb582f25a91.ctex"]
 
 [params]
 

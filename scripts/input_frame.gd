@@ -17,6 +17,10 @@ var block_pressed: bool = false
 var interact_pressed: bool = false
 var flask_pressed: bool = false
 var ping_pressed: bool = false
+## Przerwij (README, sekcja 3): uderzenie tarczą albo impuls.
+var interrupt_pressed: bool = false
+## Zmiana żywiołu pocisku (Mag).
+var element_pressed: bool = false
 
 
 ## Zwięzła postać do wysłania przez sieć (krok 2 M0).
@@ -31,6 +35,8 @@ func to_packed() -> PackedFloat32Array:
 	bits |= 64 if flask_pressed else 0
 	bits |= 128 if ping_pressed else 0
 	bits |= 256 if block_pressed else 0
+	bits |= 512 if interrupt_pressed else 0
+	bits |= 1024 if element_pressed else 0
 	return PackedFloat32Array([move.x, move.y, float(bits)])
 
 
@@ -49,4 +55,6 @@ static func from_packed(data: PackedFloat32Array) -> InputFrame:
 	f.flask_pressed = (bits & 64) != 0
 	f.ping_pressed = (bits & 128) != 0
 	f.block_pressed = (bits & 256) != 0
+	f.interrupt_pressed = (bits & 512) != 0
+	f.element_pressed = (bits & 1024) != 0
 	return f

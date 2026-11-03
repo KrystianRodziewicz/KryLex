@@ -10,7 +10,7 @@ const RIGS: Array[PackedScene] = [
 	preload("res://scenes/player/rigs/mage_rig.tscn"),
 ]
 const ANIMS: Array[StringName] = [
-	&"idle", &"run", &"jump", &"fall", &"attack", &"dodge",
+	&"idle", &"run", &"jump", &"fall", &"attack", &"bash", &"impulse", &"dodge",
 	&"block", &"block_walk", &"hurt", &"knockdown", &"dead",
 ]
 const CELL: Vector2 = Vector2(46, 72)
@@ -49,9 +49,9 @@ func _ready() -> void:
 			floor_line.size = Vector2(36, 1)
 			floor_line.color = Color(0.4, 0.4, 0.45, 1)
 			add_child(floor_line)
-	# Zoom 1.25: kadr 512x288 px mieści 11 kolumn po 46 px i dwa rzędy po 72 px.
+	# Zoom 1.05: kadr 609x343 px mieści 13 kolumn po 46 px i dwa rzędy po 72 px.
 	var camera: Camera2D = Camera2D.new()
-	camera.zoom = Vector2(1.25, 1.25)
+	camera.zoom = Vector2(1.05, 1.05)
 	camera.position = Vector2(ANIMS.size() * CELL.x * 0.5 + 4, CELL.y + 8)
 	add_child(camera)
 

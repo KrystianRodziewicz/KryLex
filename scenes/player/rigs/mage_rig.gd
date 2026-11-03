@@ -27,6 +27,7 @@ var _barrier_visible: bool = false
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 @onready var _barrier: Sprite2D = $Barrier as Sprite2D
+@onready var _ring: Sprite2D = $Ring as Sprite2D
 
 
 func _ready() -> void:
@@ -173,6 +174,7 @@ func _register_animations(library: AnimationLibrary) -> void:
 	library.add_animation(&"jump", _anim_jump())
 	library.add_animation(&"fall", _anim_fall())
 	library.add_animation(&"attack", _anim_attack())
+	library.add_animation(&"impulse", _anim_impulse())
 	library.add_animation(&"dodge", _anim_dodge())
 	library.add_animation(&"hurt", _anim_hurt())
 	library.add_animation(&"knockdown", _anim_knockdown())
@@ -206,33 +208,35 @@ func _anim_idle() -> Animation:
 
 
 func _anim_run() -> Animation:
-	# Bieg z laską uniesioną nad ziemię, fokus trzymany przed sobą.
-	var t: PackedFloat32Array = [0.0, 0.15, 0.3, 0.45, 0.6]
+	# Bieg, cykl 0,4 s, ten sam krok co u Wojownika: noga w podporze prosta
+	# pod ciałem, w wymachu zgięte kolano, biodra opadają o 2 px przy
+	# rozstawionych nogach. Laska uniesiona nad ziemię, fokus przed sobą.
+	var t: PackedFloat32Array = [0.0, 0.1, 0.2, 0.3, 0.4]
 	var tracks: Array[Track] = [
-		_rot(LEG_F, t, [35.0, 0.0, -35.0, 0.0, 35.0]),
-		_rot(LEG_B, t, [-35.0, 0.0, 35.0, 0.0, -35.0]),
-		_pos(BODY, t, [Vector2(0, 0), Vector2(0, -1), Vector2(0, 0), Vector2(0, -1), Vector2(0, 0)]),
-		_rot(BODY, [0.0], [8.0]),
-		_rot(HEAD, [0.0], [0.0]),
+		_rot(BODY, [0.0], [10.0]),
+		_rot(HEAD, [0.0], [-4.0]),
 		_pos(ORB, [0.0], [Vector2(0, -2)], false),
 		_color(ORB, [0.0], [ORB_IDLE]),
 	]
-	tracks.append_array(_staff_arm(t, [-40.0, -30.0, -20.0, -30.0, -40.0], [55.0, 45.0, 38.0, 45.0, 55.0]))
+	tracks.append_array(_gait_bob(0.4))
+	tracks.append_array(_leg(LEG_F, KNEE_F, t, [-40.0, -5.0, 35.0, 0.0, -40.0], [10.0, 0.0, 5.0, 70.0, 10.0]))
+	tracks.append_array(_leg(LEG_B, KNEE_B, t, [35.0, 0.0, -40.0, -5.0, 35.0], [5.0, 70.0, 10.0, 0.0, 5.0]))
+	tracks.append_array(_staff_arm(t, [-20.0, -30.0, -40.0, -30.0, -20.0], [38.0, 45.0, 55.0, 45.0, 38.0]))
 	tracks.append_array(_orb_arm(t, [-60.0, -50.0, -40.0, -50.0, -60.0]))
-	return _build(0.6, true, tracks)
+	return _build(0.4, true, tracks)
 
 
 func _anim_jump() -> Animation:
 	var t: PackedFloat32Array = [0.0, 0.25, 0.5]
 	var tracks: Array[Track] = [
-		_rot(LEG_F, [0.0, 0.2, 0.5], [10.0, 30.0, 25.0]),
-		_rot(LEG_B, [0.0, 0.2, 0.5], [-10.0, -35.0, -30.0]),
 		_pos(BODY, [0.0], [Vector2(0, 0)]),
 		_rot(BODY, [0.0, 0.25], [0.0, -5.0]),
 		_rot(HEAD, [0.0], [0.0]),
 		_pos(ORB, [0.0], [Vector2(0, -2)], false),
 		_color(ORB, [0.0], [ORB_IDLE]),
 	]
+	tracks.append_array(_leg(LEG_F, KNEE_F, [0.0, 0.2, 0.5], [10.0, 30.0, 25.0], [10.0, 45.0, 35.0]))
+	tracks.append_array(_leg(LEG_B, KNEE_B, [0.0, 0.2, 0.5], [-10.0, -35.0, -30.0], [10.0, 40.0, 30.0]))
 	tracks.append_array(_staff_arm(t, [-30.0, -70.0, -80.0], [45.0, 90.0, 100.0]))
 	tracks.append_array(_orb_arm(t, [-60.0, -100.0, -110.0]))
 	return _build(0.5, false, tracks)
@@ -241,14 +245,14 @@ func _anim_jump() -> Animation:
 func _anim_fall() -> Animation:
 	var t: PackedFloat32Array = [0.0, 0.5]
 	var tracks: Array[Track] = [
-		_rot(LEG_F, t, [25.0, 15.0]),
-		_rot(LEG_B, t, [-30.0, -15.0]),
 		_pos(BODY, [0.0], [Vector2(0, 0)]),
 		_rot(BODY, t, [-5.0, 6.0]),
 		_rot(HEAD, [0.0], [0.0]),
 		_pos(ORB, [0.0], [Vector2(0, -2)], false),
 		_color(ORB, [0.0], [ORB_IDLE]),
 	]
+	tracks.append_array(_leg(LEG_F, KNEE_F, t, [25.0, 15.0], [35.0, 10.0]))
+	tracks.append_array(_leg(LEG_B, KNEE_B, t, [-30.0, -15.0], [30.0, 10.0]))
 	tracks.append_array(_staff_arm(t, [-80.0, -110.0], [100.0, 125.0]))
 	tracks.append_array(_orb_arm(t, [-110.0, -130.0]))
 	return _build(0.5, false, tracks)
@@ -272,18 +276,55 @@ func _anim_attack() -> Animation:
 	return _build(0.3, false, tracks)
 
 
+func _anim_impulse() -> Animation:
+	# Przerwij: impuls. 0,55 s jak w balansie: laska w górę, uderzenie w ziemię,
+	# fokus rozbłyska, pierścień rozchodzi się z rigu (impulse_burst).
+	# Przy uderzeniu biodra opadają o piksel razem z tułowiem (przysiad).
+	var t: PackedFloat32Array = [0.0, 0.15, 0.25, 0.55]
+	var tracks: Array[Track] = [
+		_rot(BODY, t, [0.0, -10.0, 14.0, 0.0]),
+		_rot(HEAD, t, [0.0, -8.0, 10.0, 0.0]),
+		_pos(ORB, [0.0, 0.25, 0.55], [Vector2(0, -2), Vector2(0, -6), Vector2(0, -2)], false),
+		_color(ORB, [0.0, 0.2, 0.3, 0.55], [ORB_IDLE, ORB_FLASH, ORB_FLASH, ORB_IDLE]),
+	]
+	tracks.append_array(_hips(t,
+		[Vector2(0, 0), Vector2(0, 0), Vector2(0, 1), Vector2(0, 0)],
+		[Vector2(0, 0), Vector2(0, -1), Vector2(0, 1), Vector2(0, 0)]))
+	tracks.append_array(_leg(LEG_F, KNEE_F, t, [0.0, 10.0, 30.0, 0.0], [0.0, 5.0, 15.0, 0.0]))
+	tracks.append_array(_leg(LEG_B, KNEE_B, t, [0.0, -10.0, -25.0, 0.0], [0.0, 5.0, 10.0, 0.0]))
+	tracks.append_array(_staff_arm(t, [-12.0, -150.0, 25.0, -12.0], [24.0, 160.0, -10.0, 24.0]))
+	tracks.append_array(_orb_arm(t, [-35.0, -120.0, -60.0, -35.0]))
+	return _build(0.55, false, tracks)
+
+
+## Pierścień impulsu: rozchodzi się od stóp Maga i gaśnie.
+func impulse_burst() -> void:
+	_ring.visible = true
+	_ring.scale = Vector2(0.4, 0.3)
+	_ring.modulate = Color(1.8, 1.8, 1.8, 1.0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_ring, ^"scale", Vector2(5.5, 4.0), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_ring, ^"modulate:a", 0.0, 0.35)
+	tween.chain().tween_callback(_hide_ring)
+
+
+func _hide_ring() -> void:
+	_ring.visible = false
+
+
 func _anim_dodge() -> Animation:
 	# Doskok: pochylenie do przodu, laska w tył, szata za plecami. 0,28 s.
 	var t: PackedFloat32Array = [0.0, 0.1, 0.28]
 	var tracks: Array[Track] = [
 		_rot(BODY, t, [10.0, 32.0, 0.0]),
 		_pos(BODY, t, [Vector2(0, 1), Vector2(2, 3), Vector2(0, 0)]),
-		_rot(LEG_F, t, [30.0, 55.0, 0.0]),
-		_rot(LEG_B, t, [-30.0, -55.0, 0.0]),
 		_rot(HEAD, t, [0.0, -10.0, 0.0]),
 		_pos(ORB, [0.0], [Vector2(0, -2)], false),
 		_color(ORB, [0.0], [ORB_IDLE]),
 	]
+	tracks.append_array(_leg(LEG_F, KNEE_F, t, [30.0, 55.0, 0.0], [20.0, 45.0, 0.0]))
+	tracks.append_array(_leg(LEG_B, KNEE_B, t, [-30.0, -55.0, 0.0], [10.0, 30.0, 0.0]))
 	tracks.append_array(_staff_arm(t, [40.0, 70.0, -12.0], [-20.0, -40.0, 24.0]))
 	tracks.append_array(_orb_arm(t, [10.0, 40.0, -35.0]))
 	return _build(0.28, false, tracks)

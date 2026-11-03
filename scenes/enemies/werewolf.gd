@@ -51,7 +51,7 @@ func _tick_behaviour(delta: float) -> void:
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	match state:
 		State.ENTER:
-			velocity.x = float(_enter_dir) * _wstats.enter_speed
+			velocity.x = float(_enter_dir) * _wstats.enter_speed * speed_scale()
 			if absf(global_position.x - _enter_start_x) >= _wstats.enter_distance:
 				_cooldown_left = _wstats.stalk_cooldown * 0.5
 				_set_state(State.STALK)
@@ -61,10 +61,14 @@ func _tick_behaviour(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
 			if target != null:
 				face_towards(target.global_position.x)
-			if _state_time >= _wstats.charge_windup:
+			if is_frozen():
+				# Zamrożony wilk nie szarżuje: wraca do czajenia i podchodzi do zwarcia.
+				_cooldown_left = _wstats.stalk_cooldown
+				_set_state(State.STALK)
+			elif _state_time >= _wstats.charge_windup:
 				_start_charge()
 		State.CHARGE:
-			velocity.x = float(_charge_dir) * _wstats.charge_speed
+			velocity.x = float(_charge_dir) * _wstats.charge_speed * speed_scale()
 			var travelled: float = absf(global_position.x - _charge_start_x)
 			var edge_ahead: bool = (global_position.x >= room_bounds.end.x - 20.0) if _charge_dir > 0 \
 				else (global_position.x <= room_bounds.position.x + 20.0)
@@ -111,6 +115,10 @@ func _tick_stalk(delta: float) -> void:
 	if dist <= _wstats.bite_range and _cooldown_left <= 0.0:
 		_set_state(State.BITE_WINDUP)
 		return
+	if is_frozen():
+		# Zamrożony: zamiast szarży wolno podchodzi do zwarcia (karta: tam jest słaby).
+		velocity.x = signf(target_x - global_position.x) * _wstats.move_speed * speed_scale()
+		return
 	var cornered: bool = is_on_wall() or near_room_edge(24.0)
 	if _cooldown_left <= 0.0 and (dist >= _wstats.min_charge_distance or cornered):
 		_set_state(State.WINDUP)
@@ -119,7 +127,7 @@ func _tick_stalk(delta: float) -> void:
 	var desired_x: float = target_x - float(facing) * _wstats.stalk_distance
 	var dx: float = desired_x - global_position.x
 	if absf(dx) > 6.0:
-		velocity.x = signf(dx) * _wstats.move_speed
+		velocity.x = signf(dx) * _wstats.move_speed * speed_scale()
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, 600.0 * delta)
 
@@ -139,7 +147,7 @@ func _tick_retreat(delta: float) -> void:
 		_cooldown_left = maxf(_cooldown_left, _wstats.stalk_cooldown)
 		_set_state(State.STALK)
 		return
-	velocity.x = signf(dx) * _wstats.retreat_speed
+	velocity.x = signf(dx) * _wstats.retreat_speed * speed_scale()
 	facing = 1 if velocity.x > 0.0 else -1
 
 
@@ -187,15 +195,29 @@ func _on_hit_landed(hit: HitInfo) -> void:
 	_set_state(State.POUNCE)
 
 
+## Przerwij w trakcie biegu przewraca wilka (karta wilkołaka).
+func _on_interrupted(hit: HitInfo) -> void:
+	if state == State.CHARGE or state == State.WINDUP:
+		hitbox.deactivate()
+		velocity.x = float(-_charge_dir if state == State.CHARGE else -facing) * 90.0
+		print("[Wilkołak] przewrócony w biegu")
+		stun(maxf(hit.stun_seconds, 1.5))
+
+
 func _on_stun_ended() -> void:
 	_cooldown_left = _wstats.stalk_cooldown
-	_set_state(State.RETREAT)
+	# Zamrożony wilk nie odbiega: dalej podchodzi do zwarcia.
+	_set_state(State.STALK if is_frozen() else State.RETREAT)
 
 
 func _after_move() -> void:
 	# Spoza ekranu wbiega tylko przy wejściu; potem zostaje w pomieszczeniu.
 	if state != State.ENTER:
 		clamp_to_room(16.0)
+
+
+func _on_status_changed() -> void:
+	_refresh_label()
 
 
 func _set_state(new_state: State) -> void:
@@ -227,4 +249,7 @@ func _refresh_label() -> void:
 		super()
 		return
 	var status: String = "ogłuszony" if stunned_left > 0.0 else STATE_LABELS[state]
+	var suffix: String = status_suffix()
+	if suffix != "":
+		status += ", " + suffix
 	label.text = "%s %d/%d · %s" % [display_name, hp, stats.max_hp, status]

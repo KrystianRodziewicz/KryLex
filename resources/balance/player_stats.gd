@@ -53,9 +53,29 @@ extends Resource
 @export var projectile_scene: PackedScene
 @export var projectile_speed: float = 260.0
 @export var projectile_range: float = 220.0
-@export var projectile_burn_seconds: float = 2.0
+## Czas statusu nakładanego przez pocisk (żywioł wybiera gracz klawiszem).
+@export var projectile_element_seconds: float = 2.0
+## Obrażenia postawy od pocisku: zaklęcia ledwo ją ruszają, postawę łamie Wojownik.
+@export var projectile_posture_damage: int = 2
 ## Skąd wylatuje pocisk względem środka postaci (x mnożony przez kierunek).
 @export var projectile_origin: Vector2 = Vector2(14, -8)
+
+@export_group("Przerwij")
+## Uderzenie tarczą (Wojownik) albo impuls (Mag): README, sekcja 3, tabela czasowników.
+@export_enum("Uderzenie tarczą", "Impuls") var interrupt_kind: int = 0
+@export var interrupt_damage: int = 4
+## Obrażenia postawy: uderzenie tarczą łamie postawę wilka jednym ciosem.
+@export var interrupt_posture: int = 30
+@export var interrupt_knockback: float = 180.0
+## Ogłuszenie narzucone, gdy postawa nie pękła.
+@export var interrupt_stun: float = 1.2
+@export var interrupt_startup: float = 0.12
+@export var interrupt_active: float = 0.1
+@export var interrupt_recovery: float = 0.3
+## Impuls ma "wysoki koszt zasobu"; do czasu zasobu współpracy jest to odnowienie.
+@export var interrupt_cooldown: float = 1.0
+## Promień impulsu (tylko Impuls).
+@export var interrupt_radius: float = 44.0
 
 @export_group("Obrona")
 ## Ułamek obrażeń przechodzący przez blok (0 = pełny blok).

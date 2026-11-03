@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/player/player_input.gd" id="2"]
@@ -16,6 +16,9 @@ size = Vector2(20, 14)
 
 [sub_resource type="RectangleShape2D" id="interact_shape"]
 size = Vector2(28, 28)
+
+[sub_resource type="CircleShape2D" id="impulse_shape"]
+radius = 44.0
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
@@ -68,3 +71,14 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractArea"]
 shape = SubResource("interact_shape")
+
+[node name="ImpulseHitbox" type="Area2D" parent="."]
+collision_layer = 32
+collision_mask = 16
+monitoring = false
+monitorable = false
+script = ExtResource("4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ImpulseHitbox"]
+shape = SubResource("impulse_shape")
+disabled = true

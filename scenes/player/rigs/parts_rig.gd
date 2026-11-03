@@ -16,6 +16,11 @@ const HAND_B: String = "Body/ShoulderBack/Hand"
 const HAND_F: String = "Body/ShoulderFront/Hand"
 const LEG_B: String = "LegBack"
 const LEG_F: String = "LegFront"
+const KNEE_B: String = "LegBack/Knee"
+const KNEE_F: String = "LegFront/Knee"
+## Położenie bioder w spoczynku (obie nogi wiszą pod tułowiem).
+const LEG_B_HOME: Vector2 = Vector2(-2, 4)
+const LEG_F_HOME: Vector2 = Vector2(2, 4)
 
 var _current: StringName = &""
 var _player: AnimationPlayer = null
@@ -67,6 +72,24 @@ func current_animation() -> StringName:
 	return _current
 
 
+## Zatrzymuje rig w chwili [param time] animacji [param anim], bez blendu
+## (narzędzia podglądu klatek, np. tools/anim_strip.tscn).
+func pose(anim: StringName, time: float) -> void:
+	if not _player.has_animation(anim):
+		anim = &"idle"
+	_current = anim
+	_player.play(anim, 0.0)
+	_player.seek(time, true)
+	_player.pause()
+
+
+## Długość animacji w sekundach (0, gdy jej nie ma).
+func animation_length(anim: StringName) -> float:
+	if not _player.has_animation(anim):
+		return 0.0
+	return _player.get_animation(anim).length
+
+
 # --- Budowanie animacji -------------------------------------------------------------
 
 
@@ -90,7 +113,14 @@ func _build(length: float, loop: bool, tracks: Array[Track]) -> Animation:
 	var anim: Animation = Animation.new()
 	anim.length = length
 	anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
-	for track: Track in tracks:
+	# Animacja, która nie mówi o kolanach albo położeniu bioder, dostaje je
+	# w spoczynku: inaczej kolano zgięte w skoku zostałoby zgięte w idle.
+	var all_tracks: Array[Track] = []
+	all_tracks.assign(tracks)
+	for fallback: Track in _default_tracks():
+		if not _has_track(all_tracks, fallback.path):
+			all_tracks.append(fallback)
+	for track: Track in all_tracks:
 		var idx: int = anim.add_track(Animation.TYPE_VALUE)
 		anim.track_set_path(idx, track.path)
 		anim.track_set_interpolation_type(idx, Animation.INTERPOLATION_LINEAR)
@@ -120,6 +150,57 @@ func _color(path: String, times: PackedFloat32Array, colors: Array[Color]) -> Tr
 	for c: Color in colors:
 		values.append(c)
 	return Track.new(NodePath(path + ":modulate"), times, values)
+
+
+func _default_tracks() -> Array[Track]:
+	return [
+		_rot(KNEE_B, [0.0], [0.0]),
+		_rot(KNEE_F, [0.0], [0.0]),
+		_pos(LEG_B, [0.0], [LEG_B_HOME]),
+		_pos(LEG_F, [0.0], [LEG_F_HOME]),
+	]
+
+
+func _has_track(tracks: Array[Track], path: NodePath) -> bool:
+	for track: Track in tracks:
+		if track.path == path:
+			return true
+	return false
+
+
+## Noga z kolanem: obrót w biodrze (ujemny = stopa do przodu) i zgięcie
+## goleni (dodatnie = stopa w tył, jak zgina się prawdziwe kolano).
+func _leg(leg: String, knee: String, times: PackedFloat32Array,
+		hip_degrees: PackedFloat32Array, knee_degrees: PackedFloat32Array) -> Array[Track]:
+	return [_rot(leg, times, hip_degrees), _rot(knee, times, knee_degrees)]
+
+
+## Biodra: obie nogi i tułów przesuwają się razem (wykrok, przysiad), więc
+## tułów nie odjeżdża od nóg. [param body_extra] dokłada tułowiowi własne
+## przesunięcie, np. wyrównanie pochylenia, które obraca go wokół środka.
+func _hips(times: PackedFloat32Array, offsets: Array[Vector2],
+		body_extra: Array[Vector2] = []) -> Array[Track]:
+	var back: Array[Vector2] = []
+	var front: Array[Vector2] = []
+	var body: Array[Vector2] = []
+	for i: int in offsets.size():
+		back.append(LEG_B_HOME + offsets[i])
+		front.append(LEG_F_HOME + offsets[i])
+		var extra: Vector2 = body_extra[i] if i < body_extra.size() else Vector2.ZERO
+		body.append(offsets[i] + extra)
+	return [_pos(LEG_B, times, back), _pos(LEG_F, times, front), _pos(BODY, times, body)]
+
+
+## Bujanie bioder w cyklu chodu: opadają o 2 px dwa razy na cykl, gdy nogi
+## są rozstawione, żeby stopa w podporze stała na podłodze zamiast nad nią.
+func _gait_bob(cycle: float) -> Array[Track]:
+	var drops: Array[int] = [2, 1, 0, 1, 2, 1, 0, 1, 2]
+	var times: PackedFloat32Array = PackedFloat32Array()
+	var offsets: Array[Vector2] = []
+	for i: int in drops.size():
+		times.append(cycle * float(i) / 8.0)
+		offsets.append(Vector2(0.0, float(drops[i])))
+	return _hips(times, offsets)
 
 
 ## Ręka z własnym obrotem dłoni (miecz, laska): ramię i dłoń osobno.

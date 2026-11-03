@@ -17,9 +17,10 @@ func bind_player(player: Player) -> void:
 		var effects: String = player.has_status()
 		if player.is_alive() and effects != "":
 			status = "  (%s)" % effects
-		label.text = "P%d %s [%s]  HP %d/%d%s" % [
+		var hint: String = player.combat_hint()
+		label.text = "P%d %s [%s]  HP %d/%d%s%s" % [
 			player.player_id, player.stats.label, player.input.profile_label(),
-			current, maximum, status]
+			current, maximum, status, "  · " + hint if hint != "" else ""]
 	player.health_changed.connect(refresh)
 	player.state_changed.connect(func(_new_state: Player.State) -> void:
 		refresh.call(player.hp, player.stats.max_hp))

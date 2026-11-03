@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/balance/player_stats.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/rigs/mage_rig.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/player/fire_bolt.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/player/spell_bolt.tscn" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -35,9 +35,19 @@ attack_recovery = 0.16
 attack_reach = 18.0
 projectile_scene = ExtResource("3")
 projectile_speed = 260.0
-projectile_range = 220.0
-projectile_burn_seconds = 2.0
-projectile_origin = Vector2(14, -8)
+projectile_range = 280.0
+projectile_element_seconds = 2.0
+projectile_origin = Vector2(14, -2)
+interrupt_kind = 1
+interrupt_damage = 0
+interrupt_posture = 24
+interrupt_knockback = 120.0
+interrupt_stun = 0.8
+interrupt_startup = 0.15
+interrupt_active = 0.1
+interrupt_recovery = 0.3
+interrupt_cooldown = 8.0
+interrupt_radius = 44.0
 block_damage_multiplier = 1.0
 has_barrier = true
 barrier_duration = 5.0

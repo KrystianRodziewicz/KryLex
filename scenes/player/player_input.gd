@@ -26,6 +26,8 @@ var _a_block: StringName
 var _a_interact: StringName
 var _a_flask: StringName
 var _a_ping: StringName
+var _a_interrupt: StringName
+var _a_element: StringName
 
 
 func _ready() -> void:
@@ -45,6 +47,8 @@ func poll() -> InputFrame:
 	f.interact_pressed = Input.is_action_just_pressed(_a_interact)
 	f.flask_pressed = Input.is_action_just_pressed(_a_flask)
 	f.ping_pressed = Input.is_action_just_pressed(_a_ping)
+	f.interrupt_pressed = Input.is_action_just_pressed(_a_interrupt)
+	f.element_pressed = Input.is_action_just_pressed(_a_element)
 	return f
 
 
@@ -69,3 +73,5 @@ func _rebuild_actions() -> void:
 	_a_interact = StringName(prefix + "interact")
 	_a_flask = StringName(prefix + "flask")
 	_a_ping = StringName(prefix + "ping")
+	_a_interrupt = StringName(prefix + "interrupt")
+	_a_element = StringName(prefix + "element")

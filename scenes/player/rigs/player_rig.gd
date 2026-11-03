@@ -30,6 +30,11 @@ func set_barrier(_active: bool, _absorbed: bool = false) -> void:
 	pass
 
 
+## Rozbłysk impulsu (Przerwij Maga); rig bez impulsu to ignoruje.
+func impulse_burst() -> void:
+	pass
+
+
 func flash(color: Color) -> void:
 	modulate = color
 	var tween: Tween = create_tween()

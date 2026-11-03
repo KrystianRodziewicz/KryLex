@@ -31,6 +31,8 @@ Ostrzeżenia o brakujących typach i niebezpiecznych wywołaniach są w `project
 | Unik | K | B |
 | Blok (Wojownik: tarcza; Mag: bariera) | L | LT |
 | Interakcja | E | Y |
+| Przerwij (Wojownik: uderzenie tarczą; Mag: impuls) | I | RT |
+| Zmiana żywiołu pocisku (Mag) | R | wciśnięcie prawej gałki |
 | Flaszka (krok 3) | Q | LB |
 | Ping (M1) | F | RB |
 
@@ -72,9 +74,21 @@ godot --headless --path . res://tools/smoke_test_s3.tscn
 
 Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę samą ścieżkę co prawdziwe urządzenia.
 
+## Czasowniki i statusy (README, sekcja 3 i 4)
+
+| Czasownik | Wojownik | Mag |
+|---|---|---|
+| Osłoń | tarcza (L / LT, trzymanie): blok z przodu, szarża wilka odbija się i ogłusza wilka | bariera (L / LT): łuk przed Magiem, wchłania jeden cios z przodu, 20 s odnowienia |
+| Podpal / Zamroź / Poraź | brak (naoliwione ostrze dojdzie z ekwipunkiem) | pocisk (J / X) w żywiole wybranym klawiszem R / prawą gałką |
+| Przerwij | uderzenie tarczą (I / RT): 4 obrażeń, 30 postawy, przewraca wilka w biegu | impuls (I / RT): bez obrażeń, ogłusza wrogów w promieniu 44 px, 8 s odnowienia |
+
+Statusy na wrogach (`Enemy`): **podpalenie** zadaje 2 obrażeń co pół sekundy, **zamrożenie** spowalnia do 40 % (zamrożony wilk nie szarżuje, podchodzi do zwarcia), **porażenie** przeskakuje na wrogów w promieniu 56 px. Reakcja z zakresu prototypu: **zamrożony + cios fizyczny = roztrzaskanie** (plus 15 obrażeń, złamana postawa, połowa tych obrażeń dla wrogów w promieniu 40 px). Osłona żywiołowa (`EnemyStats.elemental_shield`, kora Biesa) blokuje ciosy, dopóki nie nałoży się statusu: ogień zdejmuje ją po 2 s, lód sprawia, że pęka od następnego ciosu. Na graczach działa podpalenie (iskra ognika) i zamrożenie (spowolnienie o połowę). Liczby: `resources/balance/enemy_stats.gd` i `player_stats.gd` (grupy „Statusy żywiołowe”, „Przerwij”).
+
+Test: `godot --headless --path . res://tools/smoke_test_verbs.tscn` (podpalenie, zamrożenie, impuls, roztrzaskanie na wilku w S2).
+
 ## Grafika: rigi z części (próba)
 
-Obie klasy mają pierwszą prawdziwą grafikę: postać złożoną z części (głowa, tułów, dwie ręce, dwie nogi, broń), każda jako mały pikselowy sprite, a animacje to klatki kluczowe na obrotach przegubów w `AnimationPlayer`. Wojownik to rycerz z mieczem i tarczą, Mag ma spiczasty kapelusz, brodę, szatę z gwiazdą, laskę z kryształem i fokus (świecącą kulę). Wspólna mechanika siedzi w `PartsRig`, a każda klasa dodaje tylko własne animacje.
+Obie klasy mają pierwszą prawdziwą grafikę: postać złożoną z części (głowa, tułów, dwie ręce, dwie nogi z kolanem, czyli udo i goleń, broń), każda jako mały pikselowy sprite, a animacje to klatki kluczowe na obrotach przegubów w `AnimationPlayer`. Wojownik to rycerz z mieczem i tarczą, Mag ma spiczasty kapelusz, brodę, szatę z gwiazdą, laskę z kryształem i fokus (świecącą kulę). Wspólna mechanika siedzi w `PartsRig`, a każda klasa dodaje tylko własne animacje.
 
 Mag walczy z dystansu (README, sekcja 3): atak to pocisk ognia z laski (`PlayerStats.projectile_scene`, zasięg 220 px, podpala), czyli czasownik *Podpal* w wersji mistrza. Obrona to bariera pod klawiszem bloku: łuk przed Magiem, wyższy od niego, po stronie, w którą patrzy. Wchłania jeden cios z przodu (cios w plecy przechodzi, jak przy tarczy), gaśnie po 5 s albo po trafieniu i odnawia się 20 s (*Osłoń* w wersji słabej). Łuk jest pocięty na 10 poziomych odłamków (fragmenty jednej tekstury przez `region_rect`): przy pojawianiu odłamki wsuwają się od góry i od dołu jednocześnie i spotykają na środku z błyskiem (ok. 0,35 s), bariera stoi pulsując, a gdy wchłonie cios, odłamki wybuchają na zewnątrz (0,35 s); gdy minie jej czas, kruszą się i opadają (0,5 s). To tweeny w `MageRig.set_barrier`, nie klatki. Szarża wilka wchłonięta barierą nie ogłusza wilka, w odróżnieniu od bloku tarczą. Zasób współpracy, który ma ograniczać zaklęcia Maga, dojdzie przy pętli klas.
 
@@ -82,7 +96,10 @@ Mag walczy z dystansu (README, sekcja 3): atak to pocisk ognia z laski (`PlayerS
 - Rigi: `scenes/player/rigs/warrior_rig.tscn` i `mage_rig.tscn` (układ przegubów) oraz `warrior_rig.gd` i `mage_rig.gd` (animacje w kodzie: idle, run, jump, fall, attack, dodge, hurt, knockdown, dead; Wojownik też block i block_walk). Każdy rig dziedziczy po `PlayerRig`, a gracz mówi mu tylko `play(nazwa, czas)`; brakująca animacja wraca do idle.
 - Okno ataku nadal wyznacza `PlayerStats`; rig dopasowuje tempo animacji do tego czasu, nie odwrotnie. Dotyczy to też uniku: Wojownik robi fikołek w 0,45 s (`dodge_duration`), Mag dalej skacze w 0,28 s.
 - Ta sama animacja nie startuje od nowa (skok trzyma pozę do szczytu lotu), a kolejna przenika z poprzedniej przez 80 ms blendu, więc przejścia bieg → skok → lot nie szarpią.
+- Bieg to cykl 0,4 s w obu klasach: noga w podporze idzie wyprostowana pod ciałem i odpycha się za plecy, w wymachu zgina kolano i podciąga stopę, a biodra z tułowiem opadają o 2 px przy rozstawionych nogach, żeby stopa w podporze stała na podłodze. Kolana i położenie bioder, o których animacja nie mówi, wracają do spoczynku (`PartsRig._default_tracks`), więc zgięte w skoku kolano nie zostaje zgięte w idle.
+- Wykroki i przysiady (uderzenie tarczą, impuls) przesuwają biodra razem z tułowiem (`PartsRig._hips`), żeby tułów nie odjeżdżał od nóg.
 - Podgląd wszystkich animacji w siatce: `godot --path . res://tools/anim_preview.tscn` (klatki do pliku: dodać `--write-movie out/f.png --fixed-fps 20 --quit-after 30`).
+- Taśma klatek jednej animacji w dużym powiększeniu, z linią podłogi i osią postaci: `godot --path . res://tools/anim_strip.tscn --write-movie out/strip.png --fixed-fps 10 --quit-after 3 -- run 8` (po `--` nazwa animacji i liczba klatek). Renderowanie klatek wymaga uruchomienia bez `--headless`, bo tryb headless nie ma tekstur.
 
 ![Podgląd animacji Wojownika i Maga](anim-wojownik.png)
 

@@ -6,4 +6,4 @@ extends Projectile
 
 func throw(direction: Vector2, speed: float, damage: int, burn_seconds: float,
 		life: float, source: Node2D) -> void:
-	launch(direction, speed, damage, 40.0, source, burn_seconds, life)
+	launch(direction, speed, damage, 40.0, source, Elements.Kind.FIRE, burn_seconds, life)
