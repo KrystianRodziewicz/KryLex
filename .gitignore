@@ -1,0 +1,17 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Eksport
+/build/
+/export/
+
+# Żywa baza SQLite leży w user://, nigdy w repo (docs/technika.md)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Systemowe
+.DS_Store
+Thumbs.db

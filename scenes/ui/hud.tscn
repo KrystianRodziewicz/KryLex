@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1"]
+
+[node name="Hud" type="CanvasLayer"]
+script = ExtResource("1")
+
+[node name="Margin" type="MarginContainer" parent="."]
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 360.0
+offset_bottom = 80.0
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="RoomLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "–"
+
+[node name="Players" type="VBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Hint" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 332.0
+offset_right = 632.0
+offset_bottom = 356.0
+theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
+theme_override_font_sizes/font_size = 8
+text = "P1 klawiatura: A/D ruch · Spacja skok · J atak · K unik · L blok · E interakcja · Q flaszka · F ping
+P2 pad: lewa gałka ruch · A skok · X atak · B unik · LT blok · Y interakcja · LB flaszka · RB ping"

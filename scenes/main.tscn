@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/main.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/balance/player_warrior.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/balance/player_mage.tres" id="3"]
+[ext_resource type="Script" path="res://scripts/room_camera.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1")
+p1_stats = ExtResource("2")
+p1_profile = 0
+p2_stats = ExtResource("3")
+p2_profile = 1
+first_room = &"osada"
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="RoomSlot" type="Node2D" parent="World"]
+
+[node name="Players" type="Node2D" parent="World"]
+
+[node name="RoomCamera" type="Camera2D" parent="World"]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+script = ExtResource("4")
+
+[node name="Hud" parent="." instance=ExtResource("5")]

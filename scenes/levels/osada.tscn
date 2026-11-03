@@ -1,0 +1,124 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/room.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/levels/graybox/graybox_block.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/world/shrine.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/world/guslarz.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/world/vow_pillar.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/levels/room_exit.tscn" id="6"]
+
+[node name="Osada" type="Node2D"]
+script = ExtResource("1")
+room_id = &"osada"
+biome = &"osada"
+title = "Osada (hub)"
+bounds = Rect2(0, 0, 640, 360)
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 640.0
+offset_bottom = 360.0
+color = Color(0.17, 0.12, 0.15, 1)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="Floor" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(0, 328)
+size = Vector2(640, 32)
+color = Color(0.3, 0.26, 0.22, 1)
+
+[node name="WallLeft" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(-16, 0)
+size = Vector2(16, 360)
+
+[node name="WallRight" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(640, 0)
+size = Vector2(16, 360)
+
+[node name="Ceiling" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(0, -16)
+size = Vector2(640, 16)
+
+[node name="Decor" type="Node2D" parent="."]
+
+[node name="MerchantHut" type="ColorRect" parent="Decor"]
+offset_left = 380.0
+offset_top = 264.0
+offset_right = 476.0
+offset_bottom = 328.0
+color = Color(0.22, 0.16, 0.14, 1)
+
+[node name="MerchantRoof" type="ColorRect" parent="Decor"]
+offset_left = 372.0
+offset_top = 252.0
+offset_right = 484.0
+offset_bottom = 266.0
+color = Color(0.3, 0.2, 0.16, 1)
+
+[node name="MerchantDoor" type="ColorRect" parent="Decor"]
+offset_left = 418.0
+offset_top = 296.0
+offset_right = 438.0
+offset_bottom = 328.0
+color = Color(0.12, 0.09, 0.08, 1)
+
+[node name="MerchantLabel" type="Label" parent="Decor"]
+offset_left = 372.0
+offset_top = 238.0
+offset_right = 484.0
+offset_bottom = 250.0
+theme_override_font_sizes/font_size = 8
+text = "Chata Kupca (zamknięta)"
+horizontal_alignment = 1
+
+[node name="SkullFenceLeft" type="ColorRect" parent="Decor"]
+offset_left = 552.0
+offset_top = 298.0
+offset_right = 598.0
+offset_bottom = 328.0
+color = Color(0.72, 0.68, 0.58, 1)
+
+[node name="SkullFenceRight" type="ColorRect" parent="Decor"]
+offset_left = 626.0
+offset_top = 298.0
+offset_right = 640.0
+offset_bottom = 328.0
+color = Color(0.72, 0.68, 0.58, 1)
+
+[node name="FenceLabel" type="Label" parent="Decor"]
+offset_left = 536.0
+offset_top = 284.0
+offset_right = 640.0
+offset_bottom = 296.0
+theme_override_font_sizes/font_size = 8
+text = "Płot z czaszek"
+horizontal_alignment = 1
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Shrine1" parent="Props" instance=ExtResource("3")]
+position = Vector2(72, 328)
+interactable_id = &"shrine_1"
+
+[node name="Guslarz" parent="Props" instance=ExtResource("4")]
+position = Vector2(136, 328)
+
+[node name="VowPillar" parent="Props" instance=ExtResource("5")]
+position = Vector2(224, 328)
+interactable_id = &"vow_pillar"
+
+[node name="Exits" type="Node2D" parent="."]
+
+[node name="GateToS1" parent="Exits" instance=ExtResource("6")]
+position = Vector2(592, 280)
+target_room = &"s1_za_plotem"
+entry = &"from_osada"
+caption = "Brama (oboje)"
+size = Vector2(48, 48)
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="default" type="Marker2D" parent="Spawns"]
+position = Vector2(92, 314)
+
+[node name="from_s1" type="Marker2D" parent="Spawns"]
+position = Vector2(548, 314)

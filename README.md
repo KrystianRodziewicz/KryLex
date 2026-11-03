@@ -111,7 +111,10 @@ Ten plik to wizja. Szczegóły implementacyjne żyją w `docs/`:
 - [`docs/npc-guslarz.md`](docs/npc-guslarz.md): kwestie warunkowe Guślarza i zapytania do bazy.
 - [`docs/technika.md`](docs/technika.md): sieć, baza danych, testy, Git w Godocie i notatki techniczne do mechanik.
 - [`docs/propozycje-design.md`](docs/propozycje-design.md): otwarte pytania projektowe z opcjami do przegadania.
+- [`docs/uruchomienie.md`](docs/uruchomienie.md): jak otworzyć projekt, sterowanie, sprawdzenie i test dymny bez edytora, co leży w którym folderze.
 - `docs/M0-netcode-spec.md` – specyfikacja prototypu sieci *(do napisania)*.
+
+> **Stan prac:** M0, krok 1 gotowy – dwie postacie (Wojownik na klawiaturze, Mag na padzie) w jednym procesie, Osada i S1 jako graybox, brama na dwóch, kukła do testu ataku. Uruchomienie i testy: [`docs/uruchomienie.md`](docs/uruchomienie.md).
 
 ---
 
