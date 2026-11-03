@@ -72,12 +72,25 @@ godot --headless --path . res://tools/smoke_test_s3.tscn
 
 Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę samą ścieżkę co prawdziwe urządzenia.
 
+## Grafika: rig z części (próba)
+
+Wojownik ma pierwszą prawdziwą grafikę: postać złożoną z części (głowa, tułów, dwie ręce, dwie nogi, miecz, tarcza), każda jako mały pikselowy sprite, a animacje to klatki kluczowe na obrotach przegubów w `AnimationPlayer`. Mag zostaje na prostokątach, dopóki próba nie zostanie oceniona.
+
+- Części rysuje skrypt [`tools/art/make_warrior_parts.py`](../tools/art/make_warrior_parts.py): każda część to mapa ASCII (znak = piksel, litera = kolor z palety). Zmiana wyglądu to edycja mapy i ponowne uruchomienie; wynik trafia do `assets/sprites/warrior/`.
+- Rig: `scenes/player/rigs/warrior_rig.tscn` (układ przegubów) i `warrior_rig.gd` (animacje w kodzie: idle, run, jump, fall, attack, dodge, block, block_walk, hurt, knockdown, dead). Każdy rig dziedziczy po `PlayerRig`, a gracz mówi mu tylko `play(nazwa, czas)`.
+- Okno ataku nadal wyznacza `PlayerStats`; rig dopasowuje tempo animacji do tego czasu, nie odwrotnie. Dotyczy to też uniku: Wojownik robi fikołek w 0,45 s (`dodge_duration`), Mag dalej skacze w 0,28 s.
+- Ta sama animacja nie startuje od nowa (skok trzyma pozę do szczytu lotu), a kolejna przenika z poprzedniej przez 80 ms blendu, więc przejścia bieg → skok → lot nie szarpią.
+- Podgląd wszystkich animacji w siatce: `godot --path . res://tools/anim_preview.tscn` (klatki do pliku: dodać `--write-movie out/f.png --fixed-fps 20 --quit-after 30`).
+
+![Podgląd animacji Wojownika](anim-wojownik.png)
+
 ## Co jest w repo
 
 | Folder | Co | Właściciel |
 |---|---|---|
 | `scenes/main.tscn`, `scenes/main.gd` | Sesja lokalna: spawn dwóch postaci, podmiana pomieszczeń, punkt kontrolny, powrót po śmierci obojga. | wspólne |
-| `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`). | Krystian |
+| `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`), `rigs/` (grafika postaci: `PlayerRig`, `BlockRig`, `WarriorRig`). | Krystian (rigi: Alex) |
+| `assets/sprites/` | Pikselowe części postaci generowane skryptem z `tools/art/`. | Alex |
 | `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje, opcjonalnie z odliczaniem, po którym przeciąga partnera), `graybox/` (bloki), `osada`, `s1_za_plotem`, `s2_porzucony_woz`, `s3_rozstaje`. | Alex |
 | `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik), dźwignia, krata i `DualLeverGate` (dźwignia na dwóch), `hazard_area` (obrażenia od upadku). | Alex |
 | `scenes/enemies/` | `enemy.gd` (baza: HP, postawa, ogłuszenie, okno krytyczne, śmierć do WorldStore), `werewolf` (wilkołak z karty), `wisp` i `spark` (Błędny Ognik z iskrą), `enemy_spawn_trigger` (wejście z krawędzi po mignięciu oczu), `training_dummy` (kukła, nie wróg). | Alex |

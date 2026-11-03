@@ -10,6 +10,8 @@ extends Resource
 @export var color: Color = Color.WHITE
 ## Blok ma tylko klasa z tarczą (README, sekcja 4: "blok – tylko tarcza").
 @export var can_block: bool = true
+## Scena grafiki postaci (dziedziczy po PlayerRig). Pusta = prostokąty graybox.
+@export var rig_scene: PackedScene
 
 @export_group("Zdrowie")
 @export var max_hp: int = 100

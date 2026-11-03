@@ -17,6 +17,9 @@ signal flask_requested(player: Player)
 
 enum State { IDLE, RUN, AIR, ATTACK, DODGE, HURT, DEAD }
 
+## Grafika zastępcza, gdy klasa nie ma własnego rigu w PlayerStats.rig_scene.
+const BLOCK_RIG: PackedScene = preload("res://scenes/player/rigs/block_rig.tscn")
+
 @export var stats: PlayerStats
 @export var player_id: int = 1
 @export var input_profile: PlayerInput.Profile = PlayerInput.Profile.KEYBOARD
@@ -38,6 +41,7 @@ var _state_time: float = 0.0
 var _hurt_stun: float = 0.0
 var _bleed_tick: float = 0.0
 var _burn_tick: float = 0.0
+var _rig: PlayerRig = null
 var _coyote_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _dodge_cooldown_left: float = 0.0
@@ -46,8 +50,6 @@ var _attack_closed: bool = false
 
 @onready var input: PlayerInput = $PlayerInput as PlayerInput
 @onready var visual: Node2D = $Visual as Node2D
-@onready var body_rect: ColorRect = $Visual/Body as ColorRect
-@onready var shield_rect: ColorRect = $Visual/Shield as ColorRect
 @onready var name_label: Label = $NameLabel as Label
 @onready var hitbox: Hitbox = $Hitbox as Hitbox
 @onready var hitbox_shape: CollisionShape2D = $Hitbox/CollisionShape2D as CollisionShape2D
@@ -60,8 +62,11 @@ func _ready() -> void:
 	add_to_group(&"players")
 	input.profile = input_profile
 	hp = stats.max_hp
-	body_rect.color = stats.color
-	shield_rect.visible = false
+	var rig_scene: PackedScene = stats.rig_scene if stats.rig_scene != null else BLOCK_RIG
+	_rig = rig_scene.instantiate() as PlayerRig
+	assert(_rig != null, "rig_scene musi dziedziczyć po PlayerRig")
+	visual.add_child(_rig)
+	_rig.setup(stats)
 	name_label.text = "P%d %s" % [player_id, stats.label]
 	hurtbox.hit_received.connect(_on_hit_received)
 	health_changed.emit(hp, stats.max_hp)
@@ -331,27 +336,26 @@ func _set_state(new_state: State) -> void:
 
 func _update_visual() -> void:
 	visual.scale.x = float(facing)
-	shield_rect.visible = blocking
 	match state:
 		State.DEAD:
-			visual.modulate = Color(0.4, 0.4, 0.4, 0.8)
-			visual.rotation = PI * 0.5
+			_rig.play(&"dead")
 		State.HURT:
 			# Powalenie kładzie postać; zwykłe trafienie tylko nią szarpie.
-			visual.rotation = PI * 0.5 * float(-facing) if _hurt_stun > stats.hurt_stun else 0.0
+			if _hurt_stun > stats.hurt_stun:
+				_rig.play(&"knockdown", _hurt_stun)
+			else:
+				_rig.play(&"hurt", _hurt_stun)
 		State.DODGE:
-			visual.modulate = Color(1.0, 1.0, 1.0, 0.5)
-			visual.rotation = 0.0
+			_rig.play(&"dodge", stats.dodge_duration)
 		State.ATTACK:
-			visual.modulate = Color(1.3, 1.3, 1.1)
-			visual.rotation = 0.0
+			_rig.play(&"attack", stats.attack_startup + stats.attack_active + stats.attack_recovery)
+		State.AIR:
+			_rig.play(&"jump" if velocity.y < 0.0 else &"fall")
+		State.RUN:
+			_rig.play(&"block_walk" if blocking else &"run")
 		_:
-			if visual.modulate.r >= 1.0 and visual.modulate.g >= 1.0 and visual.modulate.b >= 1.0:
-				visual.modulate = Color.WHITE
-			visual.rotation = 0.0
+			_rig.play(&"block" if blocking else &"idle")
 
 
 func _flash(color: Color) -> void:
-	visual.modulate = color
-	var tween: Tween = create_tween()
-	tween.tween_property(visual, ^"modulate", Color.WHITE, 0.15)
+	_rig.flash(color)

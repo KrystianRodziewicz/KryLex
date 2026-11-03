@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="PlayerStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PlayerStats" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://resources/balance/player_stats.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/rigs/warrior_rig.tscn" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -8,6 +9,7 @@ class_id = &"warrior"
 label = "Wojownik"
 color = Color(0.82, 0.3, 0.24, 1)
 can_block = true
+rig_scene = ExtResource("2")
 max_hp = 120
 move_speed = 95.0
 acceleration = 1100.0
@@ -20,10 +22,10 @@ jump_cut_multiplier = 0.45
 coyote_time = 0.1
 jump_buffer = 0.12
 block_move_multiplier = 0.3
-dodge_speed = 210.0
-dodge_duration = 0.3
-dodge_iframes = 0.22
-dodge_cooldown = 0.5
+dodge_speed = 150.0
+dodge_duration = 0.45
+dodge_iframes = 0.32
+dodge_cooldown = 0.45
 attack_damage = 12
 attack_knockback = 140.0
 attack_startup = 0.1
