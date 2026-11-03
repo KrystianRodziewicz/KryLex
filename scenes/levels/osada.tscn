@@ -27,10 +27,12 @@ size = Vector2(640, 32)
 color = Color(0.3, 0.26, 0.22, 1)
 
 [node name="WallLeft" parent="Geometry" instance=ExtResource("2")]
+collision_layer = 256
 position = Vector2(-16, 0)
 size = Vector2(16, 360)
 
 [node name="WallRight" parent="Geometry" instance=ExtResource("2")]
+collision_layer = 256
 position = Vector2(640, 0)
 size = Vector2(16, 360)
 

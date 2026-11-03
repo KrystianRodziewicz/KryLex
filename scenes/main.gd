@@ -101,7 +101,11 @@ func _on_shrine_rested(shrine: Shrine, player: Player) -> void:
 
 func _on_player_died(player: Player) -> void:
 	# Jedno zdarzenie śmierci, z którego czytają wszystkie systemy (README, sekcja 4).
-	WorldStore.record_event(&"player_death", player.player_id, "", &"", player.global_position)
+	var killer: StringName = &""
+	var enemy: Enemy = player.last_hit_by as Enemy
+	if enemy != null:
+		killer = enemy.enemy_id
+	WorldStore.record_event(&"player_death", player.player_id, "", killer, player.global_position)
 	for other: Player in players:
 		if other.is_alive():
 			return

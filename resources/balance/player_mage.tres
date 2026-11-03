@@ -32,4 +32,7 @@ attack_recovery = 0.16
 attack_reach = 18.0
 block_damage_multiplier = 1.0
 hurt_stun = 0.3
+knockdown_stun = 0.7
 hurt_knockback_up = -90.0
+bleed_damage = 1
+bleed_interval = 0.5

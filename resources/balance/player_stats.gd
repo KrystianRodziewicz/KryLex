@@ -51,4 +51,9 @@ extends Resource
 ## Ułamek obrażeń przechodzący przez blok (0 = pełny blok).
 @export_range(0.0, 1.0) var block_damage_multiplier: float = 0.0
 @export var hurt_stun: float = 0.25
+## Ogłuszenie po powaleniu (szarża wilkołaka).
+@export var knockdown_stun: float = 0.7
 @export var hurt_knockback_up: float = -90.0
+## Krwawienie: tyle obrażeń co pół sekundy, przez czas z trafienia.
+@export var bleed_damage: int = 1
+@export var bleed_interval: float = 0.5

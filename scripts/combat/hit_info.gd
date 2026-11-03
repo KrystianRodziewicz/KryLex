@@ -9,3 +9,11 @@ var source: Node2D = null
 ## Kierunek od źródła do celu w poziomie: (1, 0) albo (-1, 0).
 var direction: Vector2 = Vector2.RIGHT
 var knockback: float = 0.0
+## Powalenie: dłuższe ogłuszenie celu (szarża wilkołaka, Uchwyt).
+var knockdown: bool = false
+## Krwawienie w sekundach; 0 = brak.
+var bleed_seconds: float = 0.0
+
+## Wynik, wypełnia go cel: true, gdy trafienie zatrzymała tarcza.
+## Źródło czyta to z sygnału [signal Hitbox.landed] (wilk odbija się od tarczy).
+var blocked: bool = false

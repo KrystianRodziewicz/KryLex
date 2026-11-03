@@ -27,8 +27,14 @@ var state: State = State.IDLE
 var facing: int = 1
 var blocking: bool = false
 var frame: InputFrame = InputFrame.new()
+## Kto trafił ostatni; przy śmierci sesja czyta stąd zabójcę do zdarzenia player_death.
+var last_hit_by: Node2D = null
+## Pozostały czas krwawienia w sekundach.
+var bleed_left: float = 0.0
 
 var _state_time: float = 0.0
+var _hurt_stun: float = 0.0
+var _bleed_tick: float = 0.0
 var _coyote_left: float = 0.0
 var _jump_buffer_left: float = 0.0
 var _dodge_cooldown_left: float = 0.0
@@ -61,6 +67,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	frame = input.poll()
 	_tick_timers(delta)
+	_tick_bleed(delta)
 	match state:
 		State.DEAD:
 			_apply_gravity(delta)
@@ -68,7 +75,7 @@ func _physics_process(delta: float) -> void:
 		State.HURT:
 			_apply_gravity(delta)
 			velocity.x = move_toward(velocity.x, 0.0, stats.friction * 0.5 * delta)
-			if _state_time >= stats.hurt_stun:
+			if _state_time >= _hurt_stun:
 				_set_state(State.IDLE)
 		State.DODGE:
 			_tick_dodge(delta)
@@ -186,10 +193,14 @@ func _try_interact() -> void:
 func _on_hit_received(hit: HitInfo) -> void:
 	if state == State.DEAD or state == State.DODGE:
 		return
+	last_hit_by = hit.source
 	var damage: int = hit.damage
 	var from_front: bool = signi(int(hit.direction.x)) == -facing
 	if blocking and from_front:
+		# Blok tarczą: źródło dowie się o tym z HitInfo.blocked (wilk się odbija).
+		hit.blocked = true
 		damage = int(roundf(float(damage) * stats.block_damage_multiplier))
+		velocity.x = hit.direction.x * hit.knockback * 0.25
 		_flash(Color(0.8, 0.9, 1.0))
 		if damage > 0:
 			_apply_damage(damage)
@@ -197,12 +208,25 @@ func _on_hit_received(hit: HitInfo) -> void:
 	_apply_damage(damage)
 	if state == State.DEAD:
 		return
+	if hit.bleed_seconds > 0.0:
+		bleed_left = maxf(bleed_left, hit.bleed_seconds)
 	velocity = Vector2(hit.direction.x * hit.knockback, stats.hurt_knockback_up)
+	_hurt_stun = stats.knockdown_stun if hit.knockdown else stats.hurt_stun
 	if state == State.ATTACK:
 		hitbox.deactivate()
 	hurtbox.enabled = true
 	_flash(Color(1.0, 0.4, 0.4))
 	_set_state(State.HURT)
+
+
+func _tick_bleed(delta: float) -> void:
+	if bleed_left <= 0.0 or state == State.DEAD:
+		return
+	bleed_left = maxf(bleed_left - delta, 0.0)
+	_bleed_tick += delta
+	if _bleed_tick >= stats.bleed_interval:
+		_bleed_tick -= stats.bleed_interval
+		_apply_damage(stats.bleed_damage)
 
 
 func _apply_damage(damage: int) -> void:
@@ -223,6 +247,7 @@ func _die() -> void:
 
 func heal_full() -> void:
 	hp = stats.max_hp
+	bleed_left = 0.0
 	health_changed.emit(hp, stats.max_hp)
 	if state == State.DEAD:
 		revive()
@@ -279,6 +304,9 @@ func _update_visual() -> void:
 		State.DEAD:
 			visual.modulate = Color(0.4, 0.4, 0.4, 0.8)
 			visual.rotation = PI * 0.5
+		State.HURT:
+			# Powalenie kładzie postać; zwykłe trafienie tylko nią szarpie.
+			visual.rotation = PI * 0.5 * float(-facing) if _hurt_stun > stats.hurt_stun else 0.0
 		State.DODGE:
 			visual.modulate = Color(1.0, 1.0, 1.0, 0.5)
 			visual.rotation = 0.0

@@ -4,6 +4,7 @@ Stan: **M0, krok 1** (dwie postacie w jednym procesie, bez sieci). Kolejne kroki
 
 ![Osada w kroku 1](krok1-osada.png)
 ![S1 i kukła w kroku 1](krok1-s1.png)
+![S2: szarża wilkołaka](s2-wilkolak.png)
 
 Folder `docs/` ma plik `.gdignore`, więc Godot nie importuje tych obrazków jako zasobów gry.
 
@@ -56,7 +57,13 @@ Test dymny, który sam steruje obiema postaciami (brama na dwóch, przejście do
 godot --headless --path . res://tools/smoke_test.tscn
 ```
 
-Test dymny wciska akcje przez `Input.action_press`, więc sprawdza tę samą ścieżkę co prawdziwe urządzenia.
+Test dymny S2 (wilkołak wbiega po wejściu w strefę dźwigni, szarża trafia i nakłada krwawienie, blok tarczą odbija i ogłusza, ciosy krytyczne zabijają, dźwignia na dwóch otwiera kratę, zejście w dół):
+
+```bash
+godot --headless --path . res://tools/smoke_test_s2.tscn
+```
+
+Testy dymne wciskają akcje przez `Input.action_press`, więc sprawdzają tę samą ścieżkę co prawdziwe urządzenia.
 
 ## Co jest w repo
 
@@ -64,9 +71,9 @@ Test dymny wciska akcje przez `Input.action_press`, więc sprawdza tę samą śc
 |---|---|---|
 | `scenes/main.tscn`, `scenes/main.gd` | Sesja lokalna: spawn dwóch postaci, podmiana pomieszczeń, punkt kontrolny, powrót po śmierci obojga. | wspólne |
 | `scenes/player/` | Postać: `player.gd` (stany: bezczynność, bieg, powietrze, atak, unik, trafienie, śmierć), `player_input.gd` (profil urządzenia → `InputFrame`). | Krystian |
-| `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje), `graybox/` (bloki), `osada.tscn`, `s1_za_plotem.tscn`. | Alex |
-| `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik). | Alex |
-| `scenes/enemies/` | `training_dummy` – kukła do testu ataku, nie wróg z bestiariusza. | Alex |
+| `scenes/levels/` | `room.gd` (pomieszczenie), `room_exit.gd` (wyjście czekające na oboje), `graybox/` (bloki), `osada.tscn`, `s1_za_plotem.tscn`, `s2_porzucony_woz.tscn`. | Alex |
+| `scenes/world/` | Kapliczka, Guślarz (kwestia pierwszej wizyty), Słup Ślubów (znacznik), dźwignia, krata i `DualLeverGate` (dźwignia na dwóch). | Alex |
+| `scenes/enemies/` | `enemy.gd` (baza: HP, postawa, ogłuszenie, okno krytyczne, śmierć do WorldStore), `werewolf` (wilkołak z karty), `enemy_spawn_trigger` (wejście z krawędzi po mignięciu oczu), `training_dummy` (kukła, nie wróg). | Alex |
 | `scenes/ui/` | HUD: pomieszczenie, HP obu postaci, ściąga sterowania. | wspólne |
 | `scripts/` | Wspólne klasy: `InputFrame`, `Hitbox`, `Hurtbox`, `HitInfo`, `Interactable`, `RoomCamera`. | wspólne |
 | `resources/balance/` | `PlayerStats` i dwa `.tres`: Wojownik, Mag. | Alex |
@@ -78,5 +85,6 @@ Test dymny wciska akcje przez `Input.action_press`, więc sprawdza tę samą śc
 
 - **Krok 2:** dwie instancje przez localhost (`Debug > Customize Run Instances`), host spawnuje oboje, klient wysyła `InputFrame.to_packed()`.
 - **Krok 3:** wspólna flaszka zatwierdzana przez hosta, godot-sqlite za `WorldStore`, migracja `001_init.sql`.
-- Pozostałe pomieszczenia Boru (S2 i dalej), pierwszy mob (wilkołak), parowanie, pasek postawy, statusy żywiołowe.
+- Pozostałe pomieszczenia Boru (S3 i dalej), kolejne moby (ognik, strzyga, bies), parowanie, statusy żywiołowe, czasowniki *Przerwij* i *Zamroź* przeciw wilkowi.
+- Wskaźnik partnera poza ekranem: S2 rozdziela graczy o ekran, a dziś jedna kamera po prostu pokazuje środek między nimi.
 - Osobne kamery dla graczy: dziś jedna kamera śledzi środek między postaciami, bo oboje są w jednym oknie.

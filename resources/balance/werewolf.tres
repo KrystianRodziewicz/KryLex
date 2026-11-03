@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="WerewolfStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/balance/werewolf_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+max_hp = 40
+posture_max = 24
+crit_multiplier = 2.0
+stun_seconds = 2.0
+move_speed = 90.0
+gravity = 900.0
+max_fall_speed = 420.0
+hit_flinch = 40.0
+warning_seconds = 1.0
+enter_speed = 180.0
+enter_distance = 80.0
+stalk_distance = 240.0
+stalk_cooldown = 1.6
+min_charge_distance = 110.0
+retreat_speed = 160.0
+charge_windup = 0.6
+charge_speed = 420.0
+charge_distance = 640.0
+charge_damage = 18
+charge_knockback = 220.0
+charge_bleed_seconds = 3.0
+pounce_seconds = 0.45
+slide_seconds = 0.8
+blocked_stun_seconds = 2.0
+blocked_bounce = 140.0
+bite_range = 30.0
+bite_damage = 6
+bite_windup = 0.25
+bite_active = 0.1
+bite_recovery = 0.35

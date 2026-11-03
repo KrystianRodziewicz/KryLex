@@ -1,0 +1,182 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/room.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/levels/graybox/graybox_block.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/levels/room_exit.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/world/lever.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/world/grate.tscn" id="5"]
+[ext_resource type="Script" path="res://scenes/world/dual_lever_gate.gd" id="6"]
+[ext_resource type="Script" path="res://scenes/enemies/enemy_spawn_trigger.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/werewolf.tscn" id="8"]
+
+[sub_resource type="RectangleShape2D" id="trigger_a"]
+size = Vector2(200, 90)
+
+[sub_resource type="RectangleShape2D" id="trigger_b"]
+size = Vector2(200, 90)
+
+[node name="S2" type="Node2D"]
+script = ExtResource("1")
+room_id = &"s2_porzucony_woz"
+biome = &"bor"
+title = "S2 · Porzucony wóz"
+bounds = Rect2(0, 0, 1280, 420)
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 420.0
+color = Color(0.09, 0.1, 0.09, 1)
+
+[node name="Fog" type="ColorRect" parent="."]
+offset_top = 290.0
+offset_right = 1280.0
+offset_bottom = 420.0
+color = Color(0.5, 0.5, 0.55, 0.08)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="Ledge" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(0, 120)
+size = Vector2(112, 16)
+color = Color(0.24, 0.26, 0.22, 1)
+
+[node name="FloorLeft" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(-96, 328)
+size = Vector2(1096, 92)
+color = Color(0.24, 0.26, 0.22, 1)
+
+[node name="FloorRight" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(1064, 328)
+size = Vector2(216, 92)
+color = Color(0.24, 0.26, 0.22, 1)
+
+[node name="PitBottom" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(1000, 404)
+size = Vector2(64, 16)
+color = Color(0.18, 0.2, 0.17, 1)
+
+[node name="WallLeft" parent="Geometry" instance=ExtResource("2")]
+collision_layer = 256
+position = Vector2(-16, 0)
+size = Vector2(16, 420)
+
+[node name="WallRight" parent="Geometry" instance=ExtResource("2")]
+collision_layer = 256
+position = Vector2(1280, 0)
+size = Vector2(16, 420)
+
+[node name="Ceiling" parent="Geometry" instance=ExtResource("2")]
+position = Vector2(0, -16)
+size = Vector2(1280, 16)
+
+[node name="Grate" parent="Geometry" instance=ExtResource("5")]
+position = Vector2(1000, 328)
+
+[node name="Decor" type="Node2D" parent="."]
+
+[node name="CartBody" type="ColorRect" parent="Decor"]
+offset_left = 480.0
+offset_top = 292.0
+offset_right = 568.0
+offset_bottom = 322.0
+color = Color(0.3, 0.22, 0.14, 1)
+
+[node name="CartWheelLeft" type="ColorRect" parent="Decor"]
+offset_left = 490.0
+offset_top = 314.0
+offset_right = 506.0
+offset_bottom = 330.0
+color = Color(0.2, 0.15, 0.1, 1)
+
+[node name="CartWheelRight" type="ColorRect" parent="Decor"]
+offset_left = 542.0
+offset_top = 314.0
+offset_right = 558.0
+offset_bottom = 330.0
+color = Color(0.2, 0.15, 0.1, 1)
+
+[node name="CartShaft" type="ColorRect" parent="Decor"]
+offset_left = 568.0
+offset_top = 300.0
+offset_right = 604.0
+offset_bottom = 304.0
+color = Color(0.3, 0.22, 0.14, 1)
+
+[node name="CartLabel" type="Label" parent="Decor"]
+offset_left = 474.0
+offset_top = 276.0
+offset_right = 574.0
+offset_bottom = 288.0
+theme_override_font_sizes/font_size = 8
+text = "Porzucony wóz"
+horizontal_alignment = 1
+
+[node name="Eyes" type="Node2D" parent="Decor"]
+visible = false
+position = Vector2(4, 300)
+
+[node name="EyeLeft" type="ColorRect" parent="Decor/Eyes"]
+offset_right = 3.0
+offset_bottom = 3.0
+color = Color(0.95, 0.85, 0.2, 1)
+
+[node name="EyeRight" type="ColorRect" parent="Decor/Eyes"]
+offset_left = 7.0
+offset_right = 10.0
+offset_bottom = 3.0
+color = Color(0.95, 0.85, 0.2, 1)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="LeverA" parent="Props" instance=ExtResource("4")]
+position = Vector2(240, 328)
+interactable_id = &"lever_s2_a"
+
+[node name="LeverB" parent="Props" instance=ExtResource("4")]
+position = Vector2(880, 328)
+interactable_id = &"lever_s2_b"
+
+[node name="DualLeverGate" type="Node" parent="Props"]
+script = ExtResource("6")
+lever_a = NodePath("../LeverA")
+lever_b = NodePath("../LeverB")
+grate = NodePath("../../Geometry/Grate")
+
+[node name="WolfTrigger" type="Area2D" parent="Props"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("7")
+enemy_scene = ExtResource("8")
+spawn_position = Vector2(-20, 314)
+enter_direction = 1
+warning_seconds = 1.0
+eyes = NodePath("../../Decor/Eyes")
+enemies_container = NodePath("../../Enemies")
+
+[node name="ZoneA" type="CollisionShape2D" parent="Props/WolfTrigger"]
+position = Vector2(240, 283)
+shape = SubResource("trigger_a")
+
+[node name="ZoneB" type="CollisionShape2D" parent="Props/WolfTrigger"]
+position = Vector2(880, 283)
+shape = SubResource("trigger_b")
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="Exits" type="Node2D" parent="."]
+
+[node name="ToS3" parent="Exits" instance=ExtResource("3")]
+position = Vector2(1000, 372)
+target_room = &"s3_rozstaje"
+entry = &"from_s2"
+caption = "w dół do S3"
+size = Vector2(64, 32)
+
+[node name="Spawns" type="Node2D" parent="."]
+
+[node name="default" type="Marker2D" parent="Spawns"]
+position = Vector2(40, 106)
+
+[node name="from_s1" type="Marker2D" parent="Spawns"]
+position = Vector2(40, 106)
